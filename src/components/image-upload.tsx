@@ -12,7 +12,7 @@ export function ImageUpload({ onUploaded }: { onUploaded: (url: string) => void 
     const formData = new FormData();
     formData.append("file", file);
     formData.append("fileName", file.name);
-    formData.append("publicKey", process.env.NEXT_PUBLIC_IMAGEKIT_PUBLIC_KEY!);
+    formData.append("publicKey", auth.publicKey);
     formData.append("signature", auth.signature);
     formData.append("expire", auth.expire);
     formData.append("token", auth.token);
