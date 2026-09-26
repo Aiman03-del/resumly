@@ -20,6 +20,7 @@ export type PersonalInfo = z.infer<typeof personalInfoSchema>;
 export type Experience = z.infer<typeof experienceSchema>;
 
 export interface ResumeData {
+  templateId?: string;
   personalInfo: {
     fullName: string;
     email: string;
