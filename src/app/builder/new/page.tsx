@@ -3,6 +3,7 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Loader2 } from "lucide-react";
+import { toast } from "sonner";
 
 export default function NewResumePage() {
   const router = useRouter();
@@ -24,6 +25,8 @@ export default function NewResumePage() {
 
       if (error) {
         console.error("Failed to create resume:", error);
+        toast.error("Could not create resume", { description: error.message });
+        router.push("/dashboard");
         return;
       }
 

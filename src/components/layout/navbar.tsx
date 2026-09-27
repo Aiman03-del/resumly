@@ -36,7 +36,7 @@ export function Navbar() {
     <motion.header
       initial={{ y: -20, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
-      className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-md"
+      className="no-print sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-md"
     >
       <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-2 font-semibold text-lg">

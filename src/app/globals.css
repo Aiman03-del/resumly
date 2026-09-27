@@ -6,10 +6,12 @@
 
 @theme {
   --color-primary: #6366f1;
-  --color-primary-fg: #ffffff;
-  --color-secondary: #14b8a6;
-  --color-secondary-fg: #ffffff;
   --color-accent: #f472b6;
+  --color-secondary: #14b8a6;
+  
+  --color-primary-fg: #ffffff; 
+  --color-secondary-fg: #ffffff;
+ 
   --color-accent-fg: #171717;
 
   --color-background: #ffffff;
@@ -148,5 +150,24 @@ body {
   }
   html {
     @apply font-sans;
+  }
+}
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+
+  body {
+    background: white !important;
+  }
+
+  .print-area {
+    box-shadow: none !important;
+    border-radius: 0 !important;
+  }
+
+  @page {
+    margin: 0.5in;
   }
 }

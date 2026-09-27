@@ -1,4 +1,5 @@
 "use client";
+import { useEffect } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -21,8 +22,18 @@ export function ExperienceStep({
   });
 
   const { fields, append, remove } = useFieldArray({ control, name: "items" });
-  const values = watch("items");
-  const sync = () => onChange(values);
+
+  useEffect(() => {
+    const subscription = watch((value) => {
+      onChange((value.items ?? []) as FormValues["items"]);
+    });
+    return () => subscription.unsubscribe();
+  }, [watch, onChange]);
+
+  function handleRemove(index: number) {
+    remove(index);
+    onChange(watch("items"));
+  }
 
   return (
     <div className="space-y-5">
@@ -32,7 +43,7 @@ export function ExperienceStep({
         <div key={field.id} className="p-4 rounded-xl border border-border space-y-3 relative">
           <button
             type="button"
-            onClick={() => { remove(index); sync(); }}
+            onClick={() => handleRemove(index)}
             className="absolute top-3 right-3 text-foreground/40 hover:text-red-500"
           >
             <Trash2 size={16} />
@@ -43,7 +54,6 @@ export function ExperienceStep({
               <label className="text-sm font-medium">Company</label>
               <input
                 {...register(`items.${index}.company`)}
-                onBlur={sync}
                 className="w-full mt-1 px-3 py-2 rounded-lg border border-border bg-background"
                 placeholder="Acme Inc."
               />
@@ -52,7 +62,6 @@ export function ExperienceStep({
               <label className="text-sm font-medium">Role</label>
               <input
                 {...register(`items.${index}.role`)}
-                onBlur={sync}
                 className="w-full mt-1 px-3 py-2 rounded-lg border border-border bg-background"
                 placeholder="Software Engineer"
               />
@@ -64,7 +73,6 @@ export function ExperienceStep({
               <label className="text-sm font-medium">Start Date</label>
               <input
                 {...register(`items.${index}.startDate`)}
-                onBlur={sync}
                 type="month"
                 className="w-full mt-1 px-3 py-2 rounded-lg border border-border bg-background"
               />
@@ -73,7 +81,6 @@ export function ExperienceStep({
               <label className="text-sm font-medium">End Date (leave blank if current)</label>
               <input
                 {...register(`items.${index}.endDate`)}
-                onBlur={sync}
                 type="month"
                 className="w-full mt-1 px-3 py-2 rounded-lg border border-border bg-background"
               />
@@ -84,7 +91,6 @@ export function ExperienceStep({
             <label className="text-sm font-medium">Description</label>
             <textarea
               {...register(`items.${index}.description`)}
-              onBlur={sync}
               rows={3}
               className="w-full mt-1 px-3 py-2 rounded-lg border border-border bg-background"
               placeholder="What did you do and achieve in this role?"

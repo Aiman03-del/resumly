@@ -1,4 +1,5 @@
 "use client";
+import { useEffect } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
 import { Plus, Trash2 } from "lucide-react";
 
@@ -19,8 +20,18 @@ export function ProjectsStep({
     defaultValues: { items: defaultValues?.length ? defaultValues : [] },
   });
   const { fields, append, remove } = useFieldArray({ control, name: "items" });
-  const values = watch("items");
-  const sync = () => onChange(values);
+
+  useEffect(() => {
+    const subscription = watch((value) => {
+      onChange((value.items ?? []) as ProjectItem[]);
+    });
+    return () => subscription.unsubscribe();
+  }, [watch, onChange]);
+
+  function handleRemove(index: number) {
+    remove(index);
+    onChange(watch("items"));
+  }
 
   return (
     <div className="space-y-5">
@@ -30,7 +41,7 @@ export function ProjectsStep({
         <div key={field.id} className="p-4 rounded-xl border border-border space-y-3 relative">
           <button
             type="button"
-            onClick={() => { remove(index); sync(); }}
+            onClick={() => handleRemove(index)}
             className="absolute top-3 right-3 text-foreground/40 hover:text-red-500"
           >
             <Trash2 size={16} />
@@ -38,19 +49,19 @@ export function ProjectsStep({
 
           <div>
             <label className="text-sm font-medium">Project Name</label>
-            <input {...register(`items.${index}.name`)} onBlur={sync}
+            <input {...register(`items.${index}.name`)}
               className="w-full mt-1 px-3 py-2 rounded-lg border border-border bg-background"
               placeholder="Resumly" />
           </div>
           <div>
             <label className="text-sm font-medium">Description</label>
-            <textarea {...register(`items.${index}.description`)} onBlur={sync} rows={2}
+            <textarea {...register(`items.${index}.description`)} rows={2}
               className="w-full mt-1 px-3 py-2 rounded-lg border border-border bg-background"
               placeholder="What does this project do?" />
           </div>
           <div>
             <label className="text-sm font-medium">Link (optional)</label>
-            <input {...register(`items.${index}.link`)} onBlur={sync}
+            <input {...register(`items.${index}.link`)}
               className="w-full mt-1 px-3 py-2 rounded-lg border border-border bg-background"
               placeholder="https://..." />
           </div>

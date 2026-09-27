@@ -1,15 +1,17 @@
 "use client";
 
-import { Suspense, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
-import { Loader2 } from "lucide-react";
+import { AlertCircle, Loader2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { toast } from "sonner";
 
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const confirmationError = searchParams.get("error");
   const requestedRedirect = searchParams.get("redirectTo") || "/dashboard";
   const redirectTo = requestedRedirect.startsWith("/") && !requestedRedirect.startsWith("//")
     ? requestedRedirect
@@ -18,6 +20,14 @@ function LoginForm() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    if (confirmationError === "confirmation_failed") {
+      toast.error("Email confirmation failed", {
+        description: "The link may have expired. Please sign up again.",
+      });
+    }
+  }, [confirmationError]);
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -28,7 +38,13 @@ function LoginForm() {
     const { error: loginError } = await supabase.auth.signInWithPassword({ email, password });
 
     if (loginError) {
-      setError(loginError.message);
+      if (loginError.message.includes("Invalid login credentials")) {
+        setError("Incorrect email or password. Please try again.");
+      } else if (loginError.message.includes("Email not confirmed")) {
+        setError("Please confirm your email before logging in. Check your inbox.");
+      } else {
+        setError(loginError.message);
+      }
       setLoading(false);
       return;
     }
@@ -73,7 +89,12 @@ function LoginForm() {
             />
           </div>
 
-          {error && <p role="alert" className="text-sm text-red-500">{error}</p>}
+          {error && (
+            <div role="alert" className="flex items-start gap-2 text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
+              <AlertCircle size={15} className="shrink-0 mt-0.5" />
+              <p>{error}</p>
+            </div>
+          )}
 
           <button
             type="submit"

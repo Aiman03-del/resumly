@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { TemplatePicker } from "@/components/template-picker";
-import { Loader2 } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function TemplateSelectPage() {
   const { resumeId } = useParams<{ resumeId: string }>();
@@ -31,8 +31,14 @@ export default function TemplateSelectPage() {
 
   if (loading) {
     return (
-      <div className="min-h-[calc(100vh-64px)] flex items-center justify-center">
-        <Loader2 className="animate-spin text-primary" size={24} />
+      <div className="max-w-3xl mx-auto py-10 px-6">
+        <Skeleton className="h-7 w-48 mb-2" />
+        <Skeleton className="h-4 w-64 mb-8" />
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+          {Array.from({ length: 3 }, (_, index) => (
+            <Skeleton key={index} className="aspect-3/4 rounded-xl" />
+          ))}
+        </div>
       </div>
     );
   }

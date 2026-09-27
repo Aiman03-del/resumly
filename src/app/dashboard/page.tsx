@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
 import { Plus, FileText } from "lucide-react";
+import { ResumeCard } from "@/components/resume-card";
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -26,16 +27,12 @@ export default async function DashboardPage() {
       ) : (
         <div className="grid sm:grid-cols-3 gap-5">
           {resumes.map((r) => (
-            <Link
+            <ResumeCard
               key={r.id}
-              href={`/builder/${r.id}`}
-              className="p-5 rounded-xl border border-border hover:border-primary transition-colors"
-            >
-              <p className="font-medium">{r.title}</p>
-              <p className="text-xs text-foreground/50 mt-1">
-                Updated {new Date(r.updated_at).toLocaleDateString()}
-              </p>
-            </Link>
+              id={r.id}
+              displayName={r.personal_info?.fullName?.trim() || "Untitled Resume"}
+              updatedAt={new Date(r.updated_at).toLocaleDateString()}
+            />
           ))}
         </div>
       )}

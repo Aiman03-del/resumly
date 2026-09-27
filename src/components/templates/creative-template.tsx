@@ -1,5 +1,23 @@
 import { ResumeData } from "@/types/resume";
 
+function SectionTitle({ children }: { children: React.ReactNode }) {
+  return (
+    <h2 className="flex items-center gap-2 text-neutral-900 font-bold uppercase text-xs tracking-[0.12em] mb-3 pb-1.5 border-b-2 border-accent">
+      <span className="w-2 h-2 rounded-sm bg-accent shrink-0" />
+      {children}
+    </h2>
+  );
+}
+
+function SidebarSectionTitle({ children }: { children: React.ReactNode }) {
+  return (
+    <h2 className="flex items-center gap-2 text-accent font-bold uppercase text-xs tracking-[0.12em] mb-3 pb-1.5 border-b border-accent/30">
+      <span className="w-1.5 h-1.5 rounded-full bg-accent shrink-0" />
+      {children}
+    </h2>
+  );
+}
+
 export function CreativeTemplate({ data }: { data: ResumeData }) {
   return (
     <div className="bg-white text-neutral-900 flex min-h-[1000px] font-sans text-sm">
@@ -19,7 +37,7 @@ export function CreativeTemplate({ data }: { data: ResumeData }) {
           <p>{data.personalInfo.phone}</p>
         </div>
 
-        <h2 className="text-accent font-semibold uppercase text-xs tracking-wider mb-3">Skills</h2>
+        <SidebarSectionTitle>Skills</SidebarSectionTitle>
         <div className="flex flex-wrap gap-1.5 mb-8">
           {data.skills.map((skill, i) => (
             <span key={i} className="bg-white/10 px-2 py-1 rounded text-xs">
@@ -28,7 +46,7 @@ export function CreativeTemplate({ data }: { data: ResumeData }) {
           ))}
         </div>
 
-        <h2 className="text-accent font-semibold uppercase text-xs tracking-wider mb-3">Education</h2>
+        <SidebarSectionTitle>Education</SidebarSectionTitle>
         {data.education.map((edu, i) => (
           <div key={i} className="mb-3 text-xs">
             <p className="font-medium">{edu.degree}</p>
@@ -40,31 +58,40 @@ export function CreativeTemplate({ data }: { data: ResumeData }) {
       <main className="flex-1 p-8">
         {data.summary && (
           <section className="mb-6">
-            <h2 className="text-accent font-semibold uppercase text-xs tracking-wider mb-2">Profile</h2>
+            <SectionTitle>Profile</SectionTitle>
             <p className="text-neutral-700">{data.summary}</p>
           </section>
         )}
 
         <section className="mb-6">
-          <h2 className="text-accent font-semibold uppercase text-xs tracking-wider mb-3">Experience</h2>
+          <SectionTitle>Experience</SectionTitle>
           {data.experience.map((exp, i) => (
             <div key={i} className="mb-4 pl-3 border-l-2 border-accent/30">
-              <div className="flex justify-between">
-                <p className="font-medium">{exp.role}</p>
-                <p className="text-neutral-500 text-xs">{exp.startDate} - {exp.endDate ?? "Present"}</p>
+              <div className="flex justify-between gap-3">
+                <p className="font-medium min-w-0">{exp.role}</p>
+                <p className="text-neutral-500 text-xs shrink-0 whitespace-nowrap">
+                  {exp.startDate} - {exp.endDate ?? "Present"}
+                </p>
               </div>
-              <p className="text-accent text-xs mb-1">{exp.company}</p>
+                <p className="text-accent text-xs mb-1 font-medium">{exp.company}</p>
               <p className="text-neutral-700">{exp.description}</p>
             </div>
           ))}
         </section>
 
         <section>
-          <h2 className="text-accent font-semibold uppercase text-xs tracking-wider mb-3">Projects</h2>
+            <SectionTitle>Projects</SectionTitle>
           {data.projects.map((proj, i) => (
             <div key={i} className="mb-3">
-              <p className="font-medium">{proj.name}</p>
-              <p className="text-neutral-700 text-xs">{proj.description}</p>
+                <div className="flex justify-between gap-3">
+                  <p className="font-medium min-w-0">{proj.name}</p>
+                  {proj.link && (
+                    <a href={proj.link} className="text-accent text-xs shrink-0 whitespace-nowrap">
+                      {proj.link.replace(/^https?:\/\//, "")}
+                    </a>
+                  )}
+                </div>
+                <p className="text-neutral-700 text-xs mt-0.5">{proj.description}</p>
             </div>
           ))}
         </section>

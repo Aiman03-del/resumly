@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { Sparkles, Loader2 } from "lucide-react";
+import { toast } from "sonner";
 
 export function PolishButton({
   section,
@@ -16,14 +17,24 @@ export function PolishButton({
 
   async function handlePolish() {
     setLoading(true);
-    const res = await fetch("/api/polish", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ section, content }),
-    });
-    const data = await res.json();
-    onPolished(data.polished);
-    setLoading(false);
+    try {
+      const res = await fetch("/api/polish", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ section, content }),
+      });
+      if (!res.ok) throw new Error("Polish request failed");
+
+      const data = await res.json();
+      onPolished(data.polished);
+    } catch (error) {
+      console.error("Polish request failed:", error);
+      toast.error("Could not polish this section", {
+        description: "Please try again in a moment.",
+      });
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (

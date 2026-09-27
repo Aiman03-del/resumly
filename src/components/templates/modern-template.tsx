@@ -31,9 +31,11 @@ export function ModernTemplate({ data }: { data: ResumeData }) {
         <h2 className="text-primary font-semibold uppercase text-xs tracking-wider mb-2">Experience</h2>
         {data.experience.map((exp, i) => (
           <div key={i} className="mb-4">
-            <div className="flex justify-between">
-              <p className="font-medium">{exp.role} · {exp.company}</p>
-              <p className="text-neutral-500 text-xs">{exp.startDate} - {exp.endDate ?? "Present"}</p>
+            <div className="flex justify-between gap-3">
+              <p className="font-medium min-w-0">{exp.role} · {exp.company}</p>
+              <p className="text-neutral-500 text-xs shrink-0 whitespace-nowrap">
+                {exp.startDate} - {exp.endDate ?? "Present"}
+              </p>
             </div>
             <p className="text-neutral-700 mt-1">{exp.description}</p>
           </div>
@@ -43,9 +45,11 @@ export function ModernTemplate({ data }: { data: ResumeData }) {
       <section className="mb-6">
         <h2 className="text-primary font-semibold uppercase text-xs tracking-wider mb-2">Education</h2>
         {data.education.map((edu, i) => (
-          <div key={i} className="flex justify-between mb-2">
-            <p className="font-medium">{edu.degree}, {edu.institution}</p>
-            <p className="text-neutral-500 text-xs">{edu.startDate} - {edu.endDate ?? "Present"}</p>
+          <div key={i} className="flex justify-between gap-3 mb-2">
+            <p className="font-medium min-w-0">{edu.degree}, {edu.institution}</p>
+            <p className="text-neutral-500 text-xs shrink-0 whitespace-nowrap">
+              {edu.startDate} - {edu.endDate ?? "Present"}
+            </p>
           </div>
         ))}
       </section>
@@ -60,6 +64,25 @@ export function ModernTemplate({ data }: { data: ResumeData }) {
           ))}
         </div>
       </section>
+
+      {data.projects?.length > 0 && (
+        <section className="mt-6">
+          <h2 className="text-primary font-semibold uppercase text-xs tracking-wider mb-2">Projects</h2>
+          {data.projects.map((proj, i) => (
+            <div key={i} className="mb-3">
+              <div className="flex justify-between gap-3">
+                <p className="font-medium min-w-0">{proj.name}</p>
+                {proj.link && (
+                  <a href={proj.link} className="text-primary text-xs shrink-0 whitespace-nowrap">
+                    {proj.link.replace(/^https?:\/\//, "")}
+                  </a>
+                )}
+              </div>
+              <p className="text-neutral-700 mt-0.5">{proj.description}</p>
+            </div>
+          ))}
+        </section>
+      )}
     </div>
   );
 }

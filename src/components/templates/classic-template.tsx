@@ -23,9 +23,11 @@ export function ClassicTemplate({ data }: { data: ResumeData }) {
         </h2>
         {data.experience.map((exp, i) => (
           <div key={i} className="mb-4">
-            <div className="flex justify-between font-semibold">
-              <p>{exp.role}, {exp.company}</p>
-              <p className="text-neutral-500 font-normal text-xs">{exp.startDate} - {exp.endDate ?? "Present"}</p>
+            <div className="flex justify-between gap-3 font-semibold">
+              <p className="min-w-0">{exp.role}, {exp.company}</p>
+              <p className="text-neutral-500 font-normal text-xs shrink-0 whitespace-nowrap">
+                {exp.startDate} - {exp.endDate ?? "Present"}
+              </p>
             </div>
             <p className="text-neutral-700 mt-1">{exp.description}</p>
           </div>
@@ -37,9 +39,11 @@ export function ClassicTemplate({ data }: { data: ResumeData }) {
           Education
         </h2>
         {data.education.map((edu, i) => (
-          <div key={i} className="flex justify-between mb-2">
-            <p className="font-semibold">{edu.degree}, {edu.institution}</p>
-            <p className="text-neutral-500 text-xs">{edu.startDate} - {edu.endDate ?? "Present"}</p>
+          <div key={i} className="flex justify-between gap-3 mb-2">
+            <p className="font-semibold min-w-0">{edu.degree}, {edu.institution}</p>
+            <p className="text-neutral-500 text-xs shrink-0 whitespace-nowrap">
+              {edu.startDate} - {edu.endDate ?? "Present"}
+            </p>
           </div>
         ))}
       </section>
@@ -50,6 +54,27 @@ export function ClassicTemplate({ data }: { data: ResumeData }) {
         </h2>
         <p className="text-neutral-700">{data.skills.join("  ·  ")}</p>
       </section>
+
+      {data.projects?.length > 0 && (
+        <section className="mt-6">
+          <h2 className="font-bold uppercase text-xs tracking-[0.15em] border-b border-neutral-300 pb-1 mb-3">
+            Projects
+          </h2>
+          {data.projects.map((proj, i) => (
+            <div key={i} className="mb-3">
+              <div className="flex justify-between gap-3 font-semibold">
+                <p className="min-w-0">{proj.name}</p>
+                {proj.link && (
+                  <p className="text-neutral-500 font-normal text-xs shrink-0 whitespace-nowrap">
+                    {proj.link.replace(/^https?:\/\//, "")}
+                  </p>
+                )}
+              </div>
+              <p className="text-neutral-700 mt-1">{proj.description}</p>
+            </div>
+          ))}
+        </section>
+      )}
     </div>
   );
 }

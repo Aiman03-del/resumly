@@ -4,8 +4,9 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { Loader2 } from "lucide-react";
+import { AlertCircle, Loader2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { toast } from "sonner";
 
 export default function SignupPage() {
   const router = useRouter();
@@ -28,12 +29,19 @@ export default function SignupPage() {
     });
 
     if (signupError) {
-      setError(signupError.message);
+      if (signupError.message.includes("User already registered")) {
+        setError("An account with this email already exists. Try logging in instead.");
+      } else if (signupError.message.includes("Password should be")) {
+        setError("Password must be at least 6 characters.");
+      } else {
+        setError(signupError.message);
+      }
       setLoading(false);
       return;
     }
 
     if (data.session) {
+      toast.success("Account created");
       router.push("/dashboard");
       router.refresh();
     } else {
@@ -90,9 +98,15 @@ export default function SignupPage() {
               className="w-full mt-1 px-3 py-2 rounded-lg border border-border bg-background"
               placeholder="At least 6 characters"
             />
+            <p className="text-xs text-foreground/40 mt-1">Must be at least 6 characters</p>
           </div>
 
-          {error && <p role="alert" className="text-sm text-red-500">{error}</p>}
+          {error && (
+            <div role="alert" className="flex items-start gap-2 text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
+              <AlertCircle size={15} className="shrink-0 mt-0.5" />
+              <p>{error}</p>
+            </div>
+          )}
 
           <button
             type="submit"

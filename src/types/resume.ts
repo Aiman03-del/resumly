@@ -1,9 +1,9 @@
 import { z } from "zod";
 
 export const personalInfoSchema = z.object({
-  fullName: z.string().min(2),
-  email: z.string().email(),
-  phone: z.string().min(6),
+  fullName: z.string().min(2, "Name must be at least 2 characters"),
+  email: z.string().email("Enter a valid email"),
+  phone: z.string().min(6, "Enter a valid phone number"),
   location: z.string().optional(),
   photoUrl: z.string().optional(),
 });

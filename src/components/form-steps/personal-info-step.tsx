@@ -1,4 +1,5 @@
 "use client";
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { personalInfoSchema, PersonalInfo } from "@/types/resume";
@@ -7,21 +8,33 @@ import { ImageUpload } from "@/components/image-upload";
 export function PersonalInfoStep({
   defaultValues,
   onChange,
+  onValidityChange,
 }: {
   defaultValues: Partial<PersonalInfo>;
   onChange: (data: PersonalInfo) => void;
+  onValidityChange: (valid: boolean) => void;
 }) {
   const {
     register,
     watch,
     setValue,
-    formState: { errors },
+    trigger,
+    formState: { errors, isValid },
   } = useForm<PersonalInfo>({
     resolver: zodResolver(personalInfoSchema),
+    mode: "onChange",
     defaultValues,
   });
 
   const values = watch();
+
+  useEffect(() => {
+    onValidityChange(isValid);
+  }, [isValid, onValidityChange]);
+
+  useEffect(() => {
+    trigger();
+  }, [trigger]);
 
   // Push changes up on every change
   const handleBlur = () => onChange(values as PersonalInfo);
@@ -60,6 +73,7 @@ export function PersonalInfoStep({
             className="w-full mt-1 px-3 py-2 rounded-lg border border-border bg-background"
             placeholder="+880 1XXXXXXXXX"
           />
+          {errors.phone && <p className="text-xs text-red-500 mt-1">{errors.phone.message}</p>}
         </div>
       </div>
 
