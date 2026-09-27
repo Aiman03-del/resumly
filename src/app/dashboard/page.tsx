@@ -32,6 +32,21 @@ export default async function DashboardPage() {
               id={r.id}
               displayName={r.personal_info?.fullName?.trim() || "Untitled Resume"}
               updatedAt={new Date(r.updated_at).toLocaleDateString()}
+              templateId={r.template_id ?? "modern"}
+              data={{
+                personalInfo: {
+                  fullName: r.personal_info?.fullName ?? "",
+                  email: r.personal_info?.email ?? "",
+                  phone: r.personal_info?.phone ?? "",
+                  location: r.personal_info?.location,
+                  photoUrl: r.personal_info?.photoUrl,
+                },
+                summary: typeof r.summary === "string" ? r.summary : "",
+                experience: r.experience ?? [],
+                education: r.education ?? [],
+                skills: r.skills ?? [],
+                projects: r.projects ?? [],
+              }}
             />
           ))}
         </div>

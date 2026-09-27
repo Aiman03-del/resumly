@@ -14,6 +14,14 @@ import { toast } from "sonner";
 import { Skeleton } from "@/components/ui/skeleton";
 
 const steps = ["personal", "experience", "education", "skills", "projects", "summary"] as const;
+const stepLabels: Record<(typeof steps)[number], string> = {
+  personal: "Personal Info",
+  experience: "Experience",
+  education: "Education",
+  skills: "Skills",
+  projects: "Projects",
+  summary: "Summary",
+};
 
 export default function BuilderPage() {
   const { resumeId } = useParams<{ resumeId: string }>();
@@ -28,6 +36,7 @@ export default function BuilderPage() {
   const [navigating, setNavigating] = useState(false);
 
   const saveTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const savedStatusTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pendingUpdates = useRef<Record<string, any>>({});
 
   const currentStep = steps[stepIndex];
@@ -56,6 +65,7 @@ export default function BuilderPage() {
     if (Object.keys(pendingUpdates.current).length === 0) return true;
 
     setSaveState("saving");
+    if (savedStatusTimeout.current) clearTimeout(savedStatusTimeout.current);
     const updates = pendingUpdates.current;
     pendingUpdates.current = {};
 
@@ -68,12 +78,17 @@ export default function BuilderPage() {
     }
 
     setSaveState("saved");
+    savedStatusTimeout.current = setTimeout(() => {
+      setSaveState("idle");
+      savedStatusTimeout.current = null;
+    }, 3000);
     return true;
   }, [resumeId]);
 
   const scheduleSave = useCallback(
     (updates: Record<string, any>) => {
       pendingUpdates.current = { ...pendingUpdates.current, ...updates };
+      if (savedStatusTimeout.current) clearTimeout(savedStatusTimeout.current);
       setSaveState("saving");
       if (saveTimeout.current) clearTimeout(saveTimeout.current);
       saveTimeout.current = setTimeout(flushSave, 800);
@@ -126,16 +141,52 @@ export default function BuilderPage() {
       <div className="flex items-center justify-between mb-8">
         <div className="flex gap-2 flex-1">
           {steps.map((s, i) => (
-            <div key={s} className={`h-1.5 flex-1 rounded-full transition-colors ${i <= stepIndex ? "bg-primary" : "bg-muted"}`} />
+            <button
+              key={s}
+              type="button"
+              onClick={() => {
+                if (!personalInfoValid && i > 0) return;
+                void goToStep(i);
+              }}
+              className="group relative flex-1 py-1.5"
+              aria-label={`Go to ${stepLabels[s]}`}
+              aria-current={i === stepIndex ? "step" : undefined}
+            >
+              <div className={`h-1.5 rounded-full transition-colors ${i <= stepIndex ? "bg-primary" : "bg-muted group-hover:bg-primary/40"}`} />
+              <span className="pointer-events-none absolute left-1/2 -translate-x-1/2 top-full mt-2 whitespace-nowrap rounded-md bg-foreground text-background text-xs px-2 py-1 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                {stepLabels[s]}
+              </span>
+            </button>
           ))}
         </div>
-        <div className="ml-4 text-xs text-foreground/40 w-16 text-right">
-          {saveState === "saving" && "Saving..."}
-          {saveState === "saved" && (
-            <span className="flex items-center gap-1 justify-end text-green-600">
-              <Check size={12} /> Saved
-            </span>
-          )}
+        <div className="ml-4 w-20 text-right">
+          <AnimatePresence mode="wait">
+            {saveState === "saving" && (
+              <motion.span
+                key="saving"
+                initial={{ opacity: 0, y: -4 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 4 }}
+                transition={{ duration: 0.15 }}
+                className="flex items-center gap-1.5 justify-end text-xs text-foreground/40"
+              >
+                <span className="w-1.5 h-1.5 rounded-full bg-foreground/40 animate-pulse" />
+                Saving...
+              </motion.span>
+            )}
+            {saveState === "saved" && (
+              <motion.span
+                key="saved"
+                initial={{ opacity: 0, y: -4 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 4 }}
+                transition={{ duration: 0.15 }}
+                className="flex items-center gap-1 justify-end text-xs text-green-600"
+              >
+                <Check size={12} /> Saved
+              </motion.span>
+            )}
+          </AnimatePresence>
         </div>
       </div>
 

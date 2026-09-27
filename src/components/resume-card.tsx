@@ -3,7 +3,9 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Loader2, Pencil, Trash2 } from "lucide-react";
+import { Loader2, Trash2 } from "lucide-react";
+import { ResumeRenderer } from "@/components/templates";
+import { ResumeData } from "@/types/resume";
 import { createClient } from "@/lib/supabase/client";
 import { toast } from "sonner";
 import {
@@ -22,10 +24,14 @@ export function ResumeCard({
   id,
   displayName,
   updatedAt,
+  templateId,
+  data,
 }: {
   id: string;
   displayName: string;
   updatedAt: string;
+  templateId: string;
+  data: ResumeData;
 }) {
   const router = useRouter();
   const supabase = createClient();
@@ -46,21 +52,13 @@ export function ResumeCard({
 
   return (
     <div className="group relative p-5 rounded-xl border border-border hover:border-primary transition-colors">
-      <div className="absolute top-3 right-3 flex gap-1 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity">
-        <Link
-          href={`/builder/${id}`}
-          className="p-1.5 rounded-lg bg-muted hover:bg-border focus-visible:outline-2 focus-visible:outline-primary"
-          aria-label={`Edit ${displayName}`}
-        >
-          <Pencil size={13} />
-        </Link>
-
+      <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity">
         <AlertDialog>
           <AlertDialogTrigger
             render={
               <button
                 type="button"
-                className="p-1.5 rounded-lg bg-muted hover:bg-red-100 hover:text-red-600 cursor-pointer focus-visible:outline-2 focus-visible:outline-red-600"
+                className="p-1.5 rounded-lg bg-white shadow-md border border-border text-foreground/60 hover:bg-red-50 hover:text-red-600 hover:border-red-200 cursor-pointer focus-visible:outline-2 focus-visible:outline-red-600"
                 aria-label={`Delete ${displayName}`}
               >
                 <Trash2 size={13} />
@@ -88,8 +86,13 @@ export function ResumeCard({
         </AlertDialog>
       </div>
 
-      <Link href={`/preview/${id}`} className="block pr-16 focus-visible:outline-2 focus-visible:outline-primary">
-        <p className="font-medium">{displayName}</p>
+      <Link href={`/preview/${id}`} className="block focus-visible:outline-2 focus-visible:outline-primary">
+        <div className="h-40 overflow-hidden rounded-lg border border-border bg-neutral-100 mb-3">
+          <div className="w-[400%] origin-top-left scale-[0.25] pointer-events-none">
+            <ResumeRenderer templateId={templateId} data={data} />
+          </div>
+        </div>
+        <p className="font-medium pr-16">{displayName}</p>
         <p className="text-xs text-foreground/50 mt-1">Updated {updatedAt}</p>
       </Link>
     </div>
