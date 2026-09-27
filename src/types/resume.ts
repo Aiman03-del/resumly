@@ -1,4 +1,5 @@
 import { z } from "zod";
+import type { SectionKey } from "@/lib/section-order";
 
 export const personalInfoSchema = z.object({
   fullName: z.string().min(2, "Name must be at least 2 characters"),
@@ -22,6 +23,8 @@ export type Experience = z.infer<typeof experienceSchema>;
 
 export interface ResumeData {
   templateId?: string;
+  accentColor?: string;
+  sectionOrder?: SectionKey[];
   personalInfo: {
     fullName: string;
     email: string;

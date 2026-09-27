@@ -1,9 +1,17 @@
 "use client";
+import type { CSSProperties } from "react";
 import { motion } from "framer-motion";
 import { templates } from "@/types/template";
 import { Check } from "lucide-react";
 
-function TemplatePreview({ id }: { id: string }) {
+export function TemplatePreview({ id, accentColor }: { id: string; accentColor?: string }) {
+  const style = accentColor
+    ? ({ "--color-primary": accentColor, "--color-accent": accentColor } as CSSProperties)
+    : undefined;
+  return <div style={style}>{renderPreview(id)}</div>;
+}
+
+function renderPreview(id: string) {
   if (id === "creative") {
     return (
       <div className="w-full aspect-3/4 bg-neutral-50 flex p-2 gap-1.5">
@@ -160,15 +168,50 @@ function TemplatePreview({ id }: { id: string }) {
 export function TemplatePicker({
   selected,
   onSelect,
+  orientation = "grid",
+  accentColor,
 }: {
   selected: string;
   onSelect: (id: string) => void;
+  orientation?: "grid" | "list";
+  accentColor?: string;
 }) {
+  if (orientation === "list") {
+    return (
+      <div className="rounded-xl border border-border p-4">
+        <p className="text-sm font-medium mb-3">Templates</p>
+        <div className="flex flex-col gap-2 max-h-[60vh] overflow-y-auto pr-1">
+          {templates.map((template) => (
+            <button
+              key={template.id}
+              type="button"
+              onClick={() => onSelect(template.id)}
+              aria-pressed={selected === template.id}
+              className={`flex items-center gap-3 rounded-lg border-2 p-2 text-left transition-colors ${
+                selected === template.id ? "border-primary bg-primary/5" : "border-border hover:bg-muted"
+              }`}
+            >
+              <div className="w-12 shrink-0 rounded-md overflow-hidden border border-border">
+                <TemplatePreview id={template.id} accentColor={accentColor} />
+              </div>
+              <div className="min-w-0">
+                <p className="font-medium text-sm truncate">{template.name}</p>
+                <p className="text-xs text-muted-foreground truncate">{template.description}</p>
+              </div>
+              {selected === template.id && <Check size={16} className="text-primary shrink-0 ml-auto" />}
+            </button>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
       {templates.map((template) => (
         <motion.button
           key={template.id}
+          type="button"
           onClick={() => onSelect(template.id)}
           whileHover={{ y: -4 }}
           whileTap={{ scale: 0.98 }}
@@ -176,7 +219,7 @@ export function TemplatePicker({
             selected === template.id ? "border-primary" : "border-border"
           }`}
         >
-          <TemplatePreview id={template.id} />
+          <TemplatePreview id={template.id} accentColor={accentColor} />
           {selected === template.id && (
             <div className="absolute top-2 right-2 bg-primary text-primary-fg rounded-full p-1">
               <Check size={16} />

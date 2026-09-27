@@ -1,10 +1,11 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { ResumeRenderer } from "@/components/templates";
-import { ResumeData } from "@/types/resume";
+import type { ResumeData } from "@/types/resume";
+import { normalizeOrder } from "@/lib/section-order";
 import { Printer, Pencil, ArrowLeft } from "lucide-react";
 import {
   Tooltip,
@@ -17,11 +18,12 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 export default function PreviewPage() {
   const { resumeId } = useParams<{ resumeId: string }>();
-  const supabase = createClient();
+  const supabase = useMemo(() => createClient(), []);
   const resumeRef = useRef<HTMLDivElement>(null);
 
   const [data, setData] = useState<ResumeData | null>(null);
   const [templateId, setTemplateId] = useState("modern");
+  const [accentColor, setAccentColor] = useState<string | undefined>(undefined);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -30,18 +32,20 @@ export default function PreviewPage() {
       if (!error && resume) {
         setData({
           personalInfo: resume.personal_info ?? {},
-          summary: resume.summary ?? "",
+          summary: typeof resume.summary === "string" ? resume.summary : resume.summary?.text ?? "",
           experience: resume.experience ?? [],
           education: resume.education ?? [],
           skills: resume.skills ?? [],
           projects: resume.projects ?? [],
+          sectionOrder: normalizeOrder(resume.section_order),
         });
         setTemplateId(resume.template_id ?? "modern");
+        setAccentColor(resume.accent_color ?? undefined);
       }
       setLoading(false);
     }
     load();
-  }, [resumeId]);
+  }, [resumeId, supabase]);
 
   if (loading) {
     return (
@@ -131,7 +135,7 @@ export default function PreviewPage() {
       <div className="max-w-4xl mx-auto py-6 sm:py-8 px-4 sm:px-6">
         <div className="print-area rounded-lg overflow-hidden shadow-lg">
           <div ref={resumeRef}>
-            <ResumeRenderer templateId={templateId} data={data} />
+            <ResumeRenderer templateId={templateId} data={data} accentColor={accentColor} />
           </div>
         </div>
       </div>

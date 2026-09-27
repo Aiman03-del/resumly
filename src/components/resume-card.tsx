@@ -25,12 +25,14 @@ export function ResumeCard({
   displayName,
   updatedAt,
   templateId,
+  accentColor,
   data,
 }: {
   id: string;
   displayName: string;
   updatedAt: string;
   templateId: string;
+  accentColor?: string;
   data: ResumeData;
 }) {
   const router = useRouter();
@@ -89,7 +91,7 @@ export function ResumeCard({
       <Link href={`/preview/${id}`} className="block focus-visible:outline-2 focus-visible:outline-primary">
         <div className="h-40 overflow-hidden rounded-lg border border-border bg-neutral-100 mb-3">
           <div className="w-[400%] origin-top-left scale-[0.25] pointer-events-none">
-            <ResumeRenderer templateId={templateId} data={data} />
+            <ResumeRenderer templateId={templateId} data={data} accentColor={accentColor} />
           </div>
         </div>
         <p className="font-medium pr-16">{displayName}</p>

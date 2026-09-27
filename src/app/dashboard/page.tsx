@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
 import { Plus, FileText } from "lucide-react";
 import { ResumeCard } from "@/components/resume-card";
+import { normalizeOrder } from "@/lib/section-order";
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -33,6 +34,7 @@ export default async function DashboardPage() {
               displayName={r.personal_info?.fullName?.trim() || "Untitled Resume"}
               updatedAt={new Date(r.updated_at).toLocaleDateString()}
               templateId={r.template_id ?? "modern"}
+              accentColor={r.accent_color ?? undefined}
               data={{
                 personalInfo: {
                   fullName: r.personal_info?.fullName ?? "",
@@ -47,6 +49,7 @@ export default async function DashboardPage() {
                 education: r.education ?? [],
                 skills: r.skills ?? [],
                 projects: r.projects ?? [],
+                sectionOrder: normalizeOrder(r.section_order),
               }}
             />
           ))}
