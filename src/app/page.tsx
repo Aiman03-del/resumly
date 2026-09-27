@@ -2,6 +2,7 @@
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { Sparkles, LayoutTemplate, Download } from "lucide-react";
+import { HeroTemplateCarousel } from "@/components/hero-template-carousel";
 
 const features = [
   { icon: Sparkles, title: "AI Polishing", desc: "Every section refined by AI for maximum impact" },
@@ -12,11 +13,12 @@ const features = [
 export default function LandingPage() {
   return (
     <div className="max-w-6xl mx-auto px-6">
-      <section className="text-center py-24">
+      <section className="flex flex-col lg:flex-row items-center gap-10 lg:gap-8 pt-16 pb-24">
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.5 }}
+          className="flex-1 text-center lg:text-left"
         >
           <span className="inline-flex items-center gap-1.5 text-xs font-medium bg-accent/10 text-accent px-3 py-1 rounded-full mb-5">
             <Sparkles size={12} /> AI-Powered Resume Builder
@@ -24,7 +26,7 @@ export default function LandingPage() {
           <h1 className="text-4xl sm:text-5xl font-bold tracking-tight mb-5">
             Build a resume that <span className="text-primary">gets you hired</span>
           </h1>
-          <p className="text-foreground/60 max-w-xl mx-auto mb-8">
+          <p className="text-foreground/60 max-w-md mx-auto lg:mx-0 mb-8">
             Fill in your details, pick a template, and let AI polish every section —
             all in a few minutes.
           </p>
@@ -34,6 +36,14 @@ export default function LandingPage() {
           >
             Start Building — Free
           </Link>
+        </motion.div>
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.6, delay: 0.2 }}
+          className="flex-1 w-full"
+        >
+          <HeroTemplateCarousel />
         </motion.div>
       </section>
 

@@ -1,21 +1,28 @@
 "use client";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { Loader2 } from "lucide-react";
 
 export default function NewResumePage() {
   const router = useRouter();
   const supabase = createClient();
+  const hasCreated = useRef(false); // guards against Strict Mode double-invoke
 
   useEffect(() => {
+    if (hasCreated.current) return;
+    hasCreated.current = true;
+
     async function createResume() {
       const {
         data: { user },
       } = await supabase.auth.getUser();
 
-      if (!user) return;
+      if (!user) {
+        router.replace("/login");
+        return;
+      }
 
       const { data, error } = await supabase
         .from("resumes")
@@ -24,9 +31,8 @@ export default function NewResumePage() {
         .single();
 
       if (error) {
-        console.error("Failed to create resume:", error);
         toast.error("Could not create resume", { description: error.message });
-        router.push("/dashboard");
+        router.replace("/dashboard");
         return;
       }
 

@@ -46,6 +46,95 @@ function TemplatePreview({ id }: { id: string }) {
     );
   }
 
+  if (id === "minimal") {
+    return (
+      <div className="w-full aspect-3/4 bg-neutral-50 p-3">
+        <div className="border-b border-neutral-300 pb-2 mb-3">
+          <div className="h-2 bg-neutral-700 rounded w-3/5 mb-1.5" />
+          <div className="h-1 bg-neutral-300 rounded w-2/3" />
+        </div>
+        <div className="space-y-1.5 mb-3">
+          <div className="h-1 bg-neutral-300 rounded w-1/3" />
+          <div className="h-1 bg-neutral-200 rounded w-full" />
+          <div className="h-1 bg-neutral-200 rounded w-5/6" />
+        </div>
+        <div className="space-y-1.5">
+          <div className="h-1 bg-neutral-300 rounded w-2/5" />
+          <div className="h-1 bg-neutral-200 rounded w-full" />
+          <div className="h-1 bg-neutral-200 rounded w-4/5" />
+        </div>
+      </div>
+    );
+  }
+
+  if (id === "timeline") {
+    return (
+      <div className="w-full aspect-3/4 bg-neutral-50 p-3">
+        <div className="h-1.5 bg-neutral-800 rounded w-2/5 mb-3" />
+        <div className="pl-3 border-l-2 border-primary/30 space-y-2">
+          <div className="relative"><span className="absolute -left-3.75 w-1.5 h-1.5 rounded-full bg-primary" /><div className="h-1 bg-neutral-300 rounded w-full" /></div>
+          <div className="relative"><span className="absolute -left-3.75 w-1.5 h-1.5 rounded-full bg-primary" /><div className="h-1 bg-neutral-300 rounded w-4/5" /></div>
+        </div>
+      </div>
+    );
+  }
+
+  if (id === "compact") {
+    return (
+      <div className="w-full aspect-3/4 bg-neutral-50 p-3 grid grid-cols-3 gap-1.5">
+        <div className="col-span-2 space-y-1"><div className="h-1 bg-neutral-300 rounded w-full" /><div className="h-1 bg-neutral-300 rounded w-4/5" /></div>
+        <div className="space-y-1"><div className="h-1 bg-primary/40 rounded w-full" /><div className="h-1 bg-primary/40 rounded w-3/5" /></div>
+      </div>
+    );
+  }
+
+  if (id === "bold") {
+    return (
+      <div className="w-full aspect-3/4 bg-neutral-50">
+        <div className="h-8 bg-primary" />
+        <div className="p-3 space-y-1.5">
+          <div className="h-1 bg-neutral-300 rounded w-full" />
+          <div className="h-1 bg-neutral-300 rounded w-4/5" />
+        </div>
+      </div>
+    );
+  }
+
+  if (id === "elegant") {
+    return (
+      <div className="w-full aspect-3/4 bg-neutral-50 p-3 flex flex-col items-center">
+        <div className="h-1.5 bg-neutral-800 rounded w-2/5 mb-1" />
+        <div className="w-8 h-px bg-neutral-400 my-2" />
+        <div className="h-1 bg-neutral-300 rounded w-3/5" />
+      </div>
+    );
+  }
+
+  if (id === "sidebar-pro") {
+    return (
+      <div className="w-full aspect-3/4 bg-neutral-50 flex p-2 gap-1.5">
+        <div className="w-[32%] bg-white border border-neutral-200 rounded-sm p-1.5 space-y-1">
+          <div className="w-5 h-5 rounded bg-neutral-300" />
+          <div className="h-1 bg-neutral-400 rounded w-4/5" />
+        </div>
+        <div className="flex-1 space-y-1.5 p-1">
+          <div className="h-1 bg-neutral-300 rounded w-full" />
+          <div className="h-1 bg-neutral-300 rounded w-4/5" />
+        </div>
+      </div>
+    );
+  }
+
+  if (id === "tech") {
+    return (
+      <div className="w-full aspect-3/4 bg-neutral-50 p-3 font-mono">
+        <div className="h-1 bg-primary/50 rounded w-2/5 mb-2" />
+        <div className="h-1 bg-neutral-300 rounded w-full mb-1" />
+        <div className="h-1 bg-neutral-300 rounded w-3/5" />
+      </div>
+    );
+  }
+
   return (
     <div className="w-full aspect-3/4 bg-neutral-50 p-3 space-y-2">
       <div className="flex items-center gap-2 pb-2 border-b-2 border-primary/60">
