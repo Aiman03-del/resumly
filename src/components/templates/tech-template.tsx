@@ -6,6 +6,9 @@ export function TechTemplate({ data }: { data: ResumeData }) {
       <header className="mb-6">
         <p className="text-neutral-400">{"//"} resume.ts</p>
         <h1 className="text-2xl font-bold text-primary">{data.personalInfo.fullName}</h1>
+        {data.personalInfo.role && (
+          <p className="text-neutral-500 text-xs">{"// "}{data.personalInfo.role}</p>
+        )}
         <p className="text-neutral-500 mt-1">
           {data.personalInfo.email} | {data.personalInfo.phone}
           {data.personalInfo.location && ` | ${data.personalInfo.location}`}

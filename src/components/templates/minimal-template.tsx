@@ -5,6 +5,9 @@ export function MinimalTemplate({ data }: { data: ResumeData }) {
     <div className="bg-white text-neutral-900 p-12 max-w-200 mx-auto font-sans text-sm leading-relaxed">
       <header className="border-b border-neutral-200 pb-6 mb-7">
         <h1 className="text-3xl font-light tracking-tight">{data.personalInfo.fullName}</h1>
+        {data.personalInfo.role && (
+          <p className="text-neutral-600 text-sm mt-1">{data.personalInfo.role}</p>
+        )}
         <p className="text-neutral-500 text-xs mt-2">
           {data.personalInfo.email} · {data.personalInfo.phone}
           {data.personalInfo.location && ` · ${data.personalInfo.location}`}

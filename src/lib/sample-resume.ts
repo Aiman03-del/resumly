@@ -3,8 +3,9 @@ import { ResumeData } from "@/types/resume";
 export const sampleResumeData: ResumeData = {
   personalInfo: {
     fullName: "MR X",
-    email: "ayesha.rahman@email.com",
+    email: "X.rahman@email.com",
     phone: "+880 1XX-XXXXXXX",
+    role: "Frontend Engineer",
     location: "Dhaka, Bangladesh",
     photoUrl: "https://sb.kaleidousercontent.com/67418/1000x1000/8fbbfc9296/cv-color-thumbnail.png",
   },

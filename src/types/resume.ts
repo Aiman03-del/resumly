@@ -4,6 +4,7 @@ export const personalInfoSchema = z.object({
   fullName: z.string().min(2, "Name must be at least 2 characters"),
   email: z.string().email("Enter a valid email"),
   phone: z.string().min(6, "Enter a valid phone number"),
+  role: z.string().optional(),
   location: z.string().optional(),
   photoUrl: z.string().optional(),
 });
@@ -25,6 +26,7 @@ export interface ResumeData {
     fullName: string;
     email: string;
     phone: string;
+    role?: string;
     location?: string;
     photoUrl?: string;
   };

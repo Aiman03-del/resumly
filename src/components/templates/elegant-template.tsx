@@ -5,6 +5,9 @@ export function ElegantTemplate({ data }: { data: ResumeData }) {
     <div className="bg-white text-neutral-900 p-14 max-w-200 mx-auto font-serif text-sm">
       <header className="text-center mb-10">
         <h1 className="text-4xl tracking-wide mb-2">{data.personalInfo.fullName}</h1>
+        {data.personalInfo.role && (
+          <p className="text-neutral-500 text-sm tracking-[0.2em] uppercase">{data.personalInfo.role}</p>
+        )}
         <div className="w-16 h-px bg-neutral-400 mx-auto my-3" />
         <p className="text-neutral-500 text-xs">
           {data.personalInfo.email} &nbsp;•&nbsp; {data.personalInfo.phone}

@@ -5,6 +5,9 @@ export function TimelineTemplate({ data }: { data: ResumeData }) {
     <div className="bg-white text-neutral-900 p-10 max-w-200 mx-auto font-sans text-sm">
       <header className="mb-6">
         <h1 className="text-2xl font-bold">{data.personalInfo.fullName}</h1>
+        {data.personalInfo.role && (
+          <p className="text-primary text-sm font-medium">{data.personalInfo.role}</p>
+        )}
         <p className="text-neutral-500 text-xs mt-1">
           {data.personalInfo.email} · {data.personalInfo.phone}
           {data.personalInfo.location && ` · ${data.personalInfo.location}`}

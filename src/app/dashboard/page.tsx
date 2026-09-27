@@ -38,6 +38,7 @@ export default async function DashboardPage() {
                   fullName: r.personal_info?.fullName ?? "",
                   email: r.personal_info?.email ?? "",
                   phone: r.personal_info?.phone ?? "",
+                  role: r.personal_info?.role,
                   location: r.personal_info?.location,
                   photoUrl: r.personal_info?.photoUrl,
                 },

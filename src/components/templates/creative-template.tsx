@@ -30,6 +30,9 @@ export function CreativeTemplate({ data }: { data: ResumeData }) {
           />
         )}
         <h1 className="text-xl font-bold mb-1">{data.personalInfo.fullName}</h1>
+        {data.personalInfo.role && (
+          <p className="text-accent text-sm font-medium mb-1">{data.personalInfo.role}</p>
+        )}
         <p className="text-neutral-400 text-xs mb-6">{data.personalInfo.location}</p>
 
         <div className="space-y-1 text-xs text-neutral-300 mb-8">
@@ -86,9 +89,9 @@ export function CreativeTemplate({ data }: { data: ResumeData }) {
                 <div className="flex justify-between gap-3">
                   <p className="font-medium min-w-0">{proj.name}</p>
                   {proj.link && (
-                    <a href={proj.link} className="text-accent text-xs shrink-0 whitespace-nowrap">
+                    <span className="text-accent text-xs shrink-0 whitespace-nowrap">
                       {proj.link.replace(/^https?:\/\//, "")}
-                    </a>
+                    </span>
                   )}
                 </div>
                 <p className="text-neutral-700 text-xs mt-0.5">{proj.description}</p>

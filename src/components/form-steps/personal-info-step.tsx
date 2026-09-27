@@ -4,6 +4,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { personalInfoSchema, PersonalInfo } from "@/types/resume";
 import { ImageUpload } from "@/components/image-upload";
+import { commonRoles } from "@/lib/common-roles";
 
 export function PersonalInfoStep({
   defaultValues,
@@ -52,6 +53,22 @@ export function PersonalInfoStep({
           placeholder="John Doe"
         />
         {errors.fullName && <p className="text-xs text-red-500 mt-1">{errors.fullName.message}</p>}
+      </div>
+
+      <div>
+        <label className="text-sm font-medium">Role / Title</label>
+        <input
+          {...register("role")}
+          onBlur={handleBlur}
+          list="role-suggestions"
+          className="w-full mt-1 px-3 py-2 rounded-lg border border-border bg-background"
+          placeholder="e.g. Web Developer, Graphic Designer"
+        />
+        <datalist id="role-suggestions">
+          {commonRoles.map((role) => (
+            <option key={role} value={role} />
+          ))}
+        </datalist>
       </div>
 
       <div className="grid grid-cols-2 gap-4">

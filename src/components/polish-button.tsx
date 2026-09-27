@@ -7,10 +7,12 @@ import { toast } from "sonner";
 export function PolishButton({
   section,
   content,
+  context,
   onPolished,
 }: {
   section: string;
   content: unknown;
+  context?: Record<string, unknown>;
   onPolished: (text: string) => void;
 }) {
   const [loading, setLoading] = useState(false);
@@ -21,16 +23,15 @@ export function PolishButton({
       const res = await fetch("/api/polish", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ section, content }),
+        body: JSON.stringify({ section, content, context }),
       });
-      if (!res.ok) throw new Error("Polish request failed");
-
-      const data = await res.json();
+      const data = (await res.json()) as { polished: string; error?: string };
+      if (!res.ok) throw new Error(data.error ?? "Polish request failed");
       onPolished(data.polished);
-    } catch (error) {
+    } catch (error: unknown) {
       console.error("Polish request failed:", error);
       toast.error("Could not polish this section", {
-        description: "Please try again in a moment.",
+        description: error instanceof Error ? error.message : "Please try again in a moment.",
       });
     } finally {
       setLoading(false);
@@ -42,10 +43,10 @@ export function PolishButton({
       onClick={handlePolish}
       disabled={loading}
       whileTap={{ scale: 0.95 }}
-      className="flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-full bg-accent/10 text-accent border border-accent/30 hover:bg-accent/20 transition-colors"
+      className="flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full bg-accent/10 text-accent border border-accent/30 hover:bg-accent/20 transition-colors"
     >
-      {loading ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />}
-      {loading ? "Polishing..." : "Polish with AI"}
+      {loading ? <Loader2 size={12} className="animate-spin" /> : <Sparkles size={12} />}
+      {loading ? "..." : "AI"}
     </motion.button>
   );
 }

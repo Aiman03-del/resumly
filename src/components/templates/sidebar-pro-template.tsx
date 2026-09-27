@@ -12,6 +12,9 @@ export function SidebarProTemplate({ data }: { data: ResumeData }) {
           />
         )}
         <h1 className="text-lg font-bold">{data.personalInfo.fullName}</h1>
+        {data.personalInfo.role && (
+          <p className="text-primary text-xs font-medium mb-1">{data.personalInfo.role}</p>
+        )}
         <div className="text-xs text-neutral-500 mt-2 space-y-0.5">
           <p>{data.personalInfo.email}</p>
           <p>{data.personalInfo.phone}</p>

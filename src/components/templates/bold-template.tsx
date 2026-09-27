@@ -5,6 +5,9 @@ export function BoldTemplate({ data }: { data: ResumeData }) {
     <div className="bg-white text-neutral-900 max-w-200 mx-auto font-sans text-sm">
       <header className="bg-primary text-primary-fg p-10">
         <h1 className="text-3xl font-bold">{data.personalInfo.fullName}</h1>
+        {data.personalInfo.role && (
+          <p className="text-primary-fg/90 text-sm font-medium mt-0.5">{data.personalInfo.role}</p>
+        )}
         <p className="text-primary-fg/80 text-xs mt-2">
           {data.personalInfo.email} · {data.personalInfo.phone}
           {data.personalInfo.location && ` · ${data.personalInfo.location}`}

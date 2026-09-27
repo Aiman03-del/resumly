@@ -13,7 +13,10 @@ export function ModernTemplate({ data }: { data: ResumeData }) {
         )}
         <div>
           <h1 className="text-2xl font-bold">{data.personalInfo.fullName}</h1>
-          <p className="text-neutral-600">
+          {data.personalInfo.role && (
+            <p className="text-primary text-sm font-medium">{data.personalInfo.role}</p>
+          )}
+          <p className="text-neutral-600 mt-1">
             {data.personalInfo.email} · {data.personalInfo.phone}
             {data.personalInfo.location && ` · ${data.personalInfo.location}`}
           </p>
@@ -73,9 +76,9 @@ export function ModernTemplate({ data }: { data: ResumeData }) {
               <div className="flex justify-between gap-3">
                 <p className="font-medium min-w-0">{proj.name}</p>
                 {proj.link && (
-                  <a href={proj.link} className="text-primary text-xs shrink-0 whitespace-nowrap">
+                  <span className="text-primary text-xs shrink-0 whitespace-nowrap">
                     {proj.link.replace(/^https?:\/\//, "")}
-                  </a>
+                  </span>
                 )}
               </div>
               <p className="text-neutral-700 mt-0.5">{proj.description}</p>

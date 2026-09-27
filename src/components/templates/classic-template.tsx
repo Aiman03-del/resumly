@@ -5,6 +5,9 @@ export function ClassicTemplate({ data }: { data: ResumeData }) {
     <div className="bg-white text-neutral-900 p-10 max-w-[800px] mx-auto font-serif text-sm leading-relaxed">
       <header className="text-center border-b border-neutral-300 pb-5 mb-6">
         <h1 className="text-3xl font-bold tracking-wide">{data.personalInfo.fullName}</h1>
+        {data.personalInfo.role && (
+          <p className="text-neutral-700 text-sm font-medium mt-1">{data.personalInfo.role}</p>
+        )}
         <p className="text-neutral-600 mt-1 text-xs">
           {data.personalInfo.email} · {data.personalInfo.phone}
           {data.personalInfo.location && ` · ${data.personalInfo.location}`}

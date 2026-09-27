@@ -6,6 +6,9 @@ export function CompactTemplate({ data }: { data: ResumeData }) {
       <header className="flex justify-between items-start border-b border-neutral-300 pb-3 mb-4">
         <div>
           <h1 className="text-xl font-bold">{data.personalInfo.fullName}</h1>
+          {data.personalInfo.role && (
+            <p className="text-primary text-xs font-medium">{data.personalInfo.role}</p>
+          )}
           <p className="text-neutral-500 text-[11px]">{data.personalInfo.email} · {data.personalInfo.phone}</p>
         </div>
         {data.personalInfo.location && (
