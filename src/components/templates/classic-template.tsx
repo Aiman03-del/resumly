@@ -63,19 +63,23 @@ export function ClassicTemplate({ data }: { data: ResumeData }) {
           <h2 className="font-bold uppercase text-xs tracking-[0.15em] border-b border-neutral-300 pb-1 mb-3">
             Projects
           </h2>
-          {data.projects.map((proj, i) => (
-            <div key={i} className="mb-3">
-              <div className="flex justify-between gap-3 font-semibold">
-                <p className="min-w-0">{proj.name}</p>
-                {proj.link && (
-                  <p className="text-neutral-500 font-normal text-xs shrink-0 whitespace-nowrap">
-                    {proj.link.replace(/^https?:\/\//, "")}
-                  </p>
-                )}
+          {data.projects.map((proj, i) => {
+            const currentLinks = proj.links?.filter((link) => link.trim()) ?? [];
+            const links = currentLinks.length ? currentLinks : proj.link ? [proj.link] : [];
+            return (
+              <div key={i} className="mb-3">
+                <div className="flex justify-between gap-3 font-semibold">
+                  <p className="min-w-0">{proj.name}</p>
+                  {links.length > 0 && (
+                    <p className="text-neutral-500 font-normal text-xs shrink-0 whitespace-nowrap">
+                      {links.map((link) => link.replace(/^https?:\/\//, "")).join(" · ")}
+                    </p>
+                  )}
+                </div>
+                <p className="text-neutral-700 mt-1">{proj.description}</p>
               </div>
-              <p className="text-neutral-700 mt-1">{proj.description}</p>
-            </div>
-          ))}
+            );
+          })}
         </section>
       )}
     </div>

@@ -84,19 +84,23 @@ export function CreativeTemplate({ data }: { data: ResumeData }) {
 
         <section>
             <SectionTitle>Projects</SectionTitle>
-          {data.projects.map((proj, i) => (
-            <div key={i} className="mb-3">
+          {data.projects.map((proj, i) => {
+            const currentLinks = proj.links?.filter((link) => link.trim()) ?? [];
+            const links = currentLinks.length ? currentLinks : proj.link ? [proj.link] : [];
+            return (
+              <div key={i} className="mb-3">
                 <div className="flex justify-between gap-3">
                   <p className="font-medium min-w-0">{proj.name}</p>
-                  {proj.link && (
+                  {links.length > 0 && (
                     <span className="text-accent text-xs shrink-0 whitespace-nowrap">
-                      {proj.link.replace(/^https?:\/\//, "")}
+                      {links.map((link) => link.replace(/^https?:\/\//, "")).join(" · ")}
                     </span>
                   )}
                 </div>
                 <p className="text-neutral-700 text-xs mt-0.5">{proj.description}</p>
-            </div>
-          ))}
+              </div>
+            );
+          })}
         </section>
       </main>
     </div>

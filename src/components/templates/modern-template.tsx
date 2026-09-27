@@ -71,19 +71,23 @@ export function ModernTemplate({ data }: { data: ResumeData }) {
       {data.projects?.length > 0 && (
         <section className="mt-6">
           <h2 className="text-primary font-semibold uppercase text-xs tracking-wider mb-2">Projects</h2>
-          {data.projects.map((proj, i) => (
-            <div key={i} className="mb-3">
-              <div className="flex justify-between gap-3">
-                <p className="font-medium min-w-0">{proj.name}</p>
-                {proj.link && (
-                  <span className="text-primary text-xs shrink-0 whitespace-nowrap">
-                    {proj.link.replace(/^https?:\/\//, "")}
-                  </span>
-                )}
+          {data.projects.map((proj, i) => {
+            const currentLinks = proj.links?.filter((link) => link.trim()) ?? [];
+            const links = currentLinks.length ? currentLinks : proj.link ? [proj.link] : [];
+            return (
+              <div key={i} className="mb-3">
+                <div className="flex justify-between gap-3">
+                  <p className="font-medium min-w-0">{proj.name}</p>
+                  {links.length > 0 && (
+                    <span className="text-primary text-xs shrink-0 whitespace-nowrap">
+                      {links.map((link) => link.replace(/^https?:\/\//, "")).join(" · ")}
+                    </span>
+                  )}
+                </div>
+                <p className="text-neutral-700 mt-0.5">{proj.description}</p>
               </div>
-              <p className="text-neutral-700 mt-0.5">{proj.description}</p>
-            </div>
-          ))}
+            );
+          })}
         </section>
       )}
     </div>

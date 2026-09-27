@@ -49,5 +49,6 @@ export interface ResumeData {
     name: string;
     description: string;
     link?: string;
+    links?: string[];
   }[];
 }

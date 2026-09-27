@@ -3,47 +3,62 @@ import { useEffect, useState } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Plus, Trash2, Wand2, Loader2 } from "lucide-react";
+import { Plus, Trash2, Wand2, Loader2, Link2, X } from "lucide-react";
 import { PolishButton } from "@/components/polish-button";
 import { toast } from "sonner";
+
+const MAX_LINKS = 5;
+
+const linkSchema = z
+  .string()
+  .trim()
+  .refine((value) => value === "" || /^https?:\/\/.+\..+/.test(value), {
+    message: "Enter a valid link (e.g. https://example.com)",
+  });
 
 const projectItemSchema = z.object({
   name: z.string().min(1, "Project name is required"),
   description: z.string(),
-  link: z
-    .string()
-    .trim()
-    .refine((value) => value === "" || /^https?:\/\/.+\..+/.test(value), {
-      message: "Enter a valid link (e.g. https://example.com)",
-    })
-    .optional(),
+  links: z.array(linkSchema).max(MAX_LINKS).optional(),
 });
 
 const formSchema = z.object({ items: z.array(projectItemSchema) });
 type FormValues = z.infer<typeof formSchema>;
 type ProjectItem = FormValues["items"][number];
+type InitialProjectItem = ProjectItem & { link?: string };
+
+function withLinks(item: InitialProjectItem): ProjectItem {
+  return {
+    name: item.name,
+    description: item.description,
+    links: item.links?.length ? item.links : item.link ? [item.link] : [""],
+  };
+}
 
 export function ProjectsStep({
   defaultValues,
   onChange,
 }: {
-  defaultValues: ProjectItem[];
+  defaultValues: InitialProjectItem[];
   onChange: (data: ProjectItem[]) => void;
 }) {
+  const initialItems = defaultValues?.length ? defaultValues.map(withLinks) : [];
+
   const {
     register,
     control,
     watch,
+    getValues,
     setValue,
     trigger,
     formState: { errors },
   } = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     mode: "onBlur",
-    defaultValues: { items: defaultValues?.length ? defaultValues : [] },
+    defaultValues: { items: initialItems },
   });
   const { fields, append, remove } = useFieldArray({ control, name: "items" });
-  const [liveItems, setLiveItems] = useState<ProjectItem[]>(defaultValues?.length ? defaultValues : []);
+  const [liveItems, setLiveItems] = useState<ProjectItem[]>(initialItems);
   const [generatingIndex, setGeneratingIndex] = useState<number | null>(null);
 
   useEffect(() => {
@@ -62,13 +77,36 @@ export function ProjectsStep({
     onChange(updated);
   }
 
-  async function handleGenerateFromLink(index: number) {
-    const valid = await trigger(`items.${index}.link`);
-    if (!valid) return;
+  function handleAddLink(index: number) {
+    const current = getValues(`items.${index}.links`) ?? [];
+    if (current.length >= MAX_LINKS) return;
+    setValue(`items.${index}.links`, [...current, ""], { shouldDirty: true });
+  }
 
-    const link = liveItems[index]?.link;
-    if (!link) {
-      toast.error("Add a project link first");
+  function handleRemoveLink(index: number, linkIndex: number) {
+    const current = getValues(`items.${index}.links`) ?? [];
+    const updated = current.filter((_, currentIndex) => currentIndex !== linkIndex);
+    setValue(`items.${index}.links`, updated.length ? updated : [""], { shouldDirty: true });
+    void trigger(`items.${index}.links`);
+  }
+
+  function handleLinkChange(index: number, linkIndex: number, value: string) {
+    setValue(`items.${index}.links.${linkIndex}`, value, { shouldDirty: true });
+  }
+
+  async function handleGenerateFromLink(index: number) {
+    const name = liveItems[index]?.name;
+    const links = (liveItems[index]?.links ?? [])
+      .map((link) => link?.trim())
+      .filter((link): link is string => Boolean(link));
+
+    if (links.length) {
+      const valid = await trigger(`items.${index}.links`);
+      if (!valid) return;
+    }
+
+    if (!links.length && !name) {
+      toast.error("Add a project name or link first");
       return;
     }
 
@@ -77,16 +115,16 @@ export function ProjectsStep({
       const response = await fetch("/api/project-link", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ link, name: liveItems[index]?.name }),
+        body: JSON.stringify({ links, name }),
       });
       const result = await response.json() as { description?: string; error?: string };
-      if (!response.ok) throw new Error(result.error ?? "Could not fetch link");
+      if (!response.ok) throw new Error(result.error ?? "Could not generate description");
       setValue(`items.${index}.description`, result.description ?? "", {
         shouldDirty: true,
         shouldValidate: true,
       });
     } catch (error: unknown) {
-      toast.error("Could not generate from link", {
+      toast.error("Could not generate description", {
         description: error instanceof Error ? error.message : "Please try again in a moment.",
       });
     } finally {
@@ -101,6 +139,8 @@ export function ProjectsStep({
       {fields.map((field, index) => {
         const row = liveItems[index];
         const hasDescription = (row?.description ?? "").trim().length > 0;
+        const links = row?.links?.length ? row.links : [""];
+        const linksError = errors.items?.[index]?.links;
 
         return (
           <div key={field.id} className="p-4 rounded-xl border border-border space-y-3 relative">
@@ -126,31 +166,65 @@ export function ProjectsStep({
             </div>
 
             <div>
-              <label className="text-sm font-medium">Link</label>
-              <div className="flex gap-2 mt-1">
-                <input
-                  {...register(`items.${index}.link`)}
-                  onBlur={() => trigger(`items.${index}.link`)}
-                  className="flex-1 min-w-0 px-3 py-2 rounded-lg border border-border bg-background"
-                  placeholder="https://github.com/username/project"
-                />
-                <button
-                  type="button"
-                  onClick={() => handleGenerateFromLink(index)}
-                  disabled={generatingIndex === index}
-                  className="shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-lg bg-accent/10 text-accent border border-accent/30 hover:bg-accent/20 transition-colors text-xs font-medium disabled:opacity-60"
-                  title="Generate description from this link using AI"
-                >
-                  {generatingIndex === index ? (
-                    <Loader2 size={14} className="animate-spin" />
-                  ) : (
-                    <Wand2 size={14} />
-                  )}
-                  Fetch
-                </button>
+              <div className="flex items-center justify-between">
+                <label className="text-sm font-medium">Links</label>
+                {links.length < MAX_LINKS && (
+                  <button
+                    type="button"
+                    onClick={() => handleAddLink(index)}
+                    className="flex items-center gap-1 text-xs text-primary font-medium"
+                  >
+                    <Plus size={12} /> Add link
+                  </button>
+                )}
               </div>
-              {errors.items?.[index]?.link && (
-                <p className="text-xs text-red-500 mt-1">{errors.items[index]?.link?.message}</p>
+              <div className="space-y-2 mt-1">
+                {links.map((linkValue, linkIndex) => (
+                  <div key={linkIndex} className="flex gap-2">
+                    <div className="flex-1 min-w-0 relative">
+                      <Link2
+                        size={14}
+                        className="absolute left-2.5 top-1/2 -translate-y-1/2 text-foreground/30 pointer-events-none"
+                      />
+                      <input
+                        value={linkValue ?? ""}
+                        onChange={(event) => handleLinkChange(index, linkIndex, event.target.value)}
+                        onBlur={() => void trigger(`items.${index}.links`)}
+                        className="w-full pl-8 pr-3 py-2 rounded-lg border border-border bg-background"
+                        placeholder={linkIndex === 0 ? "https://github.com/username/project" : "https://your-live-demo.com"}
+                      />
+                    </div>
+                    {links.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveLink(index, linkIndex)}
+                        className="shrink-0 px-2 text-foreground/40 hover:text-red-500"
+                        aria-label="Remove this link"
+                      >
+                        <X size={16} />
+                      </button>
+                    )}
+                    {linkIndex === 0 && (
+                      <button
+                        type="button"
+                        onClick={() => handleGenerateFromLink(index)}
+                        disabled={generatingIndex === index}
+                        className="shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-lg bg-accent/10 text-accent border border-accent/30 hover:bg-accent/20 transition-colors text-xs font-medium disabled:opacity-60"
+                        title="Generate description using AI from these links (links optional)"
+                      >
+                        {generatingIndex === index ? (
+                          <Loader2 size={14} className="animate-spin" />
+                        ) : (
+                          <Wand2 size={14} />
+                        )}
+                        Fetch
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </div>
+              {linksError && (
+                <p className="text-xs text-red-500 mt-1">Enter a valid link (e.g. https://example.com)</p>
               )}
             </div>
 
@@ -178,7 +252,7 @@ export function ProjectsStep({
 
       <button
         type="button"
-        onClick={() => append({ name: "", description: "", link: "" })}
+        onClick={() => append({ name: "", description: "", links: [""] })}
         className="flex items-center gap-1.5 text-sm text-primary font-medium"
       >
         <Plus size={16} /> Add Project
