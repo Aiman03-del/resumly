@@ -34,6 +34,7 @@ export interface ResumeData {
     photoUrl?: string;
   };
   summary: string;
+  themeColor?: string;
   experience: {
     company: string;
     role: string;

@@ -4,12 +4,13 @@ import { useParams, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { TemplatePicker } from "@/components/template-picker";
 import { ColorPalette } from "@/components/color-palette";
+import { ScaledPreview } from "@/components/scaled-preview";
 import { SectionOrderList } from "@/components/section-order-list";
 import { ResumeRenderer } from "@/components/templates";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { ResumeData } from "@/types/resume";
-import { DEFAULT_ACCENT_COLOR } from "@/lib/accent-color";
 import { normalizeOrder, type SectionKey } from "@/lib/section-order";
+import { isHexColor, themeStyle } from "@/lib/theme";
 import { toast } from "sonner";
 
 export default function TemplateSelectPage() {
@@ -18,7 +19,7 @@ export default function TemplateSelectPage() {
   const supabase = useMemo(() => createClient(), []);
 
   const [selected, setSelected] = useState("modern");
-  const [accentColor, setAccentColor] = useState(DEFAULT_ACCENT_COLOR);
+  const [themeColor, setThemeColor] = useState<string | null>(null);
   const [sectionOrder, setSectionOrder] = useState<SectionKey[]>(normalizeOrder());
   const [resumeData, setResumeData] = useState<ResumeData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -29,7 +30,7 @@ export default function TemplateSelectPage() {
       const { data } = await supabase.from("resumes").select("*").eq("id", resumeId).single();
       if (data) {
         setSelected(data.template_id ?? "modern");
-        setAccentColor(data.accent_color ?? DEFAULT_ACCENT_COLOR);
+        setThemeColor(isHexColor(data.theme_color) ? data.theme_color : isHexColor(data.accent_color) ? data.accent_color : null);
         setSectionOrder(normalizeOrder(data.section_order));
         setResumeData({
           personalInfo: data.personal_info ?? { fullName: "", email: "", phone: "" },
@@ -39,6 +40,7 @@ export default function TemplateSelectPage() {
           skills: data.skills ?? [],
           projects: data.projects ?? [],
           sectionOrder: normalizeOrder(data.section_order),
+          themeColor: isHexColor(data.theme_color) ? data.theme_color : undefined,
         });
       }
       setLoading(false);
@@ -52,15 +54,23 @@ export default function TemplateSelectPage() {
       .from("resumes")
       .update({
         template_id: selected,
-        accent_color: accentColor,
+        accent_color: themeColor,
+        theme_color: themeColor,
         section_order: sectionOrder,
         status: "polished",
       })
       .eq("id", resumeId);
     if (error) {
-      toast.error("Could not save template settings", { description: error.message });
-      setSaving(false);
-      return;
+      const retry = await supabase
+        .from("resumes")
+        .update({ template_id: selected, accent_color: themeColor, section_order: sectionOrder, status: "polished" })
+        .eq("id", resumeId);
+      if (retry.error) {
+        toast.error("Could not save template settings", { description: retry.error.message });
+        setSaving(false);
+        return;
+      }
+      if (themeColor) toast.warning("Template saved, but the color was not", { description: "Add a theme_color text column to the resumes table to save colors." });
     }
     router.push(`/preview/${resumeId}`);
   }
@@ -78,7 +88,7 @@ export default function TemplateSelectPage() {
     );
   }
 
-  const previewData: ResumeData = { ...resumeData, sectionOrder, accentColor };
+  const previewData: ResumeData = { ...resumeData, sectionOrder, themeColor: themeColor ?? undefined };
 
   return (
     <div className="max-w-6xl mx-auto py-10 px-6">
@@ -87,23 +97,20 @@ export default function TemplateSelectPage() {
         Pick a style, a color, and drag to reorder sections — you can change this later.
       </p>
 
-      <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-8 items-start">
-        <div className="space-y-5 lg:sticky lg:top-24">
-          <ColorPalette value={accentColor} onChange={setAccentColor} />
-          <TemplatePicker
-            orientation="list"
-            selected={selected}
-            onSelect={setSelected}
-            accentColor={accentColor}
-          />
-        </div>
+      <div className="grid lg:grid-cols-[460px_1fr] gap-6 mt-5 items-start">
+        <aside className="space-y-4 lg:sticky lg:top-20 lg:max-h-[calc(100vh-6rem)] lg:overflow-y-auto lg:pr-1">
+          <ColorPalette value={themeColor} onChange={setThemeColor} />
+          <div style={themeStyle(themeColor)}>
+            <TemplatePicker variant="list" selected={selected} onSelect={setSelected} />
+          </div>
+        </aside>
 
         <div className="space-y-5 min-w-0">
           <div className="rounded-xl border border-border overflow-hidden shadow-sm bg-neutral-100">
-            <div className="max-h-[75vh] overflow-auto p-6 flex justify-center">
-              <div className="w-fit origin-top scale-[0.62] sm:scale-[0.8]">
-                <ResumeRenderer templateId={selected} data={previewData} accentColor={accentColor} />
-              </div>
+            <div className="p-3 sm:p-5">
+              <ScaledPreview>
+                <ResumeRenderer templateId={selected} data={previewData} />
+              </ScaledPreview>
             </div>
           </div>
 

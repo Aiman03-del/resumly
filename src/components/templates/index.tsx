@@ -1,5 +1,6 @@
-import type { CSSProperties } from "react";
+import type { ComponentType } from "react";
 import type { ResumeData } from "@/types/resume";
+import { themeStyle } from "@/lib/theme";
 import { ModernTemplate } from "./modern-template";
 import { CreativeTemplate } from "./creative-template";
 import { ClassicTemplate } from "./classic-template";
@@ -11,7 +12,7 @@ import { ElegantTemplate } from "./elegant-template";
 import { SidebarProTemplate } from "./sidebar-pro-template";
 import { TechTemplate } from "./tech-template";
 
-const templateMap: Record<string, React.ComponentType<{ data: ResumeData }>> = {
+const templateMap: Record<string, ComponentType<{ data: ResumeData }>> = {
   modern: ModernTemplate,
   creative: CreativeTemplate,
   classic: ClassicTemplate,
@@ -34,18 +35,8 @@ export function ResumeRenderer({
   accentColor?: string;
 }) {
   const Template = templateMap[templateId] ?? ModernTemplate;
-  const style = accentColor
-    ? ({
-        "--color-primary": accentColor,
-        "--color-accent": accentColor,
-        "--primary": accentColor,
-        "--accent": accentColor,
-      } as CSSProperties)
-    : undefined;
+  const style = themeStyle(data.themeColor ?? accentColor);
 
-  return (
-    <div style={style}>
-      <Template data={data} />
-    </div>
-  );
+  if (Object.keys(style).length === 0) return <Template data={data} />;
+  return <div style={style}><Template data={data} /></div>;
 }

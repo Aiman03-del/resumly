@@ -49,6 +49,7 @@ export default async function DashboardPage() {
                 education: r.education ?? [],
                 skills: r.skills ?? [],
                 projects: r.projects ?? [],
+                themeColor: r.theme_color ?? undefined,
                 sectionOrder: normalizeOrder(r.section_order),
               }}
             />

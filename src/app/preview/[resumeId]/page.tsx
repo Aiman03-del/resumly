@@ -37,6 +37,7 @@ export default function PreviewPage() {
           education: resume.education ?? [],
           skills: resume.skills ?? [],
           projects: resume.projects ?? [],
+          themeColor: resume.theme_color ?? undefined,
           sectionOrder: normalizeOrder(resume.section_order),
         });
         setTemplateId(resume.template_id ?? "modern");

@@ -168,40 +168,40 @@ function renderPreview(id: string) {
 export function TemplatePicker({
   selected,
   onSelect,
-  orientation = "grid",
+  variant = "grid",
   accentColor,
 }: {
   selected: string;
   onSelect: (id: string) => void;
-  orientation?: "grid" | "list";
+  variant?: "grid" | "list";
   accentColor?: string;
 }) {
-  if (orientation === "list") {
+  if (variant === "list") {
     return (
-      <div className="rounded-xl border border-border p-4">
-        <p className="text-sm font-medium mb-3">Templates</p>
-        <div className="flex flex-col gap-2 max-h-[60vh] overflow-y-auto pr-1">
+      <div className="grid grid-cols-2 gap-2">
           {templates.map((template) => (
             <button
               key={template.id}
               type="button"
               onClick={() => onSelect(template.id)}
-              aria-pressed={selected === template.id}
-              className={`flex items-center gap-3 rounded-lg border-2 p-2 text-left transition-colors ${
+              className={`relative flex items-center gap-2.5 p-2 pr-7 rounded-xl border-2 text-left transition-colors min-w-0 ${
                 selected === template.id ? "border-primary bg-primary/5" : "border-border hover:bg-muted"
               }`}
             >
-              <div className="w-12 shrink-0 rounded-md overflow-hidden border border-border">
-                <TemplatePreview id={template.id} accentColor={accentColor} />
+              <div className="w-11 shrink-0 rounded-md overflow-hidden border border-border">
+                <TemplatePreview id={template.id} />
               </div>
               <div className="min-w-0">
                 <p className="font-medium text-sm truncate">{template.name}</p>
-                <p className="text-xs text-muted-foreground truncate">{template.description}</p>
+                <p className="text-[11px] leading-snug text-foreground/50 line-clamp-2">{template.description}</p>
               </div>
-              {selected === template.id && <Check size={16} className="text-primary shrink-0 ml-auto" />}
+              {selected === template.id && (
+                <div className="absolute top-1.5 right-1.5 bg-primary text-primary-fg rounded-full p-0.5">
+                  <Check size={12} />
+                </div>
+              )}
             </button>
           ))}
-        </div>
       </div>
     );
   }
