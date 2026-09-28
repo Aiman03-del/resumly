@@ -16,6 +16,7 @@ import {
 import { DownloadMenu } from "@/components/download-menu";
 import { AtsCheck } from "@/components/ats-check";
 import { CoverLetter } from "@/components/cover-letter";
+import { ShareLink } from "@/components/share-link";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export default function PreviewPage() {
@@ -102,6 +103,7 @@ export default function PreviewPage() {
           <div className="flex items-center gap-1.5 sm:gap-2">
             <AtsCheck data={data} />
             <CoverLetter data={data} />
+            <ShareLink resumeId={resumeId} />
             <Tooltip>
               <TooltipTrigger
                 render={
