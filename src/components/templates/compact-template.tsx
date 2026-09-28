@@ -1,5 +1,6 @@
 import type { ResumeData } from "@/types/resume";
 import { normalizeOrder, pickOrder } from "@/lib/section-order";
+import { renderSections } from "@/lib/render-sections";
 
 export function CompactTemplate({ data }: { data: ResumeData }) {
   const fullOrder = normalizeOrder(data.sectionOrder);
@@ -79,8 +80,8 @@ export function CompactTemplate({ data }: { data: ResumeData }) {
       {data.summary && <p className="text-neutral-600 mb-4">{data.summary}</p>}
 
       <div className="grid grid-cols-3 gap-6">
-        <div className="col-span-2">{mainOrder.map((key) => mainSections[key])}</div>
-        <div>{sideOrder.map((key) => sideSections[key])}</div>
+        <div className="col-span-2">{renderSections(mainOrder, mainSections)}</div>
+        <div>{renderSections(sideOrder, sideSections)}</div>
       </div>
     </div>
   );

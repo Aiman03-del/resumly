@@ -1,5 +1,6 @@
 import type { ResumeData } from "@/types/resume";
 import { normalizeOrder, pickOrder } from "@/lib/section-order";
+import { renderSections } from "@/lib/render-sections";
 
 function SectionTitle({ children }: { children: React.ReactNode }) {
   return (
@@ -117,11 +118,11 @@ export function CreativeTemplate({ data }: { data: ResumeData }) {
           <p>{data.personalInfo.phone}</p>
         </div>
 
-        {sidebarOrder.map((key) => sidebarSections[key])}
+        {renderSections(sidebarOrder, sidebarSections)}
       </aside>
 
       <main className="flex-1 p-8">
-        {mainOrder.map((key) => mainSections[key])}
+        {renderSections(mainOrder, mainSections)}
       </main>
     </div>
   );

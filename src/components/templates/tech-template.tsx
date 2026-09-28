@@ -1,5 +1,6 @@
 import type { ResumeData } from "@/types/resume";
 import { normalizeOrder, pickOrder, type SectionKey } from "@/lib/section-order";
+import { renderSections } from "@/lib/render-sections";
 
 export function TechTemplate({ data }: { data: ResumeData }) {
   const order = pickOrder(normalizeOrder(data.sectionOrder), [
@@ -78,7 +79,7 @@ export function TechTemplate({ data }: { data: ResumeData }) {
         </p>
       </header>
 
-      {order.map((key) => sections[key])}
+      {renderSections(order, sections)}
     </div>
   );
 }

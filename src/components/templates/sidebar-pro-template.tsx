@@ -1,5 +1,6 @@
 import type { ResumeData } from "@/types/resume";
 import { normalizeOrder, pickOrder } from "@/lib/section-order";
+import { renderSections } from "@/lib/render-sections";
 
 export function SidebarProTemplate({ data }: { data: ResumeData }) {
   const fullOrder = normalizeOrder(data.sectionOrder);
@@ -86,11 +87,11 @@ export function SidebarProTemplate({ data }: { data: ResumeData }) {
           {data.personalInfo.location && <p>{data.personalInfo.location}</p>}
         </div>
 
-        {sidebarOrder.map((key) => sidebarSections[key])}
+        {renderSections(sidebarOrder, sidebarSections)}
       </aside>
 
       <main className="flex-1 p-7">
-        {mainOrder.map((key) => mainSections[key])}
+        {renderSections(mainOrder, mainSections)}
       </main>
     </div>
   );

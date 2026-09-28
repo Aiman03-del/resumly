@@ -4,8 +4,7 @@ import { useParams, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { TemplatePicker } from "@/components/template-picker";
 import { ColorPalette } from "@/components/color-palette";
-import { ScaledPreview } from "@/components/scaled-preview";
-import { SectionOrderList } from "@/components/section-order-list";
+import { SectionDndProvider } from "@/components/sortable-section";
 import { ResumeRenderer } from "@/components/templates";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { ResumeData } from "@/types/resume";
@@ -106,15 +105,18 @@ export default function TemplateSelectPage() {
         </aside>
 
         <div className="space-y-5 min-w-0">
+          <p className="text-xs text-foreground/50">
+            Tip: drag any section in the preview to reorder it. Sidebar templates reorder each column separately.
+          </p>
           <div className="rounded-xl border border-border overflow-hidden shadow-sm bg-neutral-100">
-            <div className="p-3 sm:p-5">
-              <ScaledPreview>
-                <ResumeRenderer templateId={selected} data={previewData} />
-              </ScaledPreview>
+            <div className="max-h-[75vh] overflow-auto p-6 flex justify-center">
+              <div className="w-fit origin-top scale-[0.62] sm:scale-[0.8]">
+                <SectionDndProvider order={sectionOrder} onChange={setSectionOrder}>
+                  <ResumeRenderer templateId={selected} data={previewData} />
+                </SectionDndProvider>
+              </div>
             </div>
           </div>
-
-          <SectionOrderList order={sectionOrder} onChange={setSectionOrder} />
         </div>
       </div>
 

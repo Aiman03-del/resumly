@@ -1,5 +1,6 @@
 import type { ResumeData } from "@/types/resume";
 import { normalizeOrder, pickOrder, type SectionKey } from "@/lib/section-order";
+import { renderSections } from "@/lib/render-sections";
 
 export function ModernTemplate({ data }: { data: ResumeData }) {
   const order = pickOrder(normalizeOrder(data.sectionOrder), [
@@ -104,7 +105,7 @@ export function ModernTemplate({ data }: { data: ResumeData }) {
         </div>
       </header>
 
-      {order.map((key) => sections[key])}
+      {renderSections(order, sections)}
     </div>
   );
 }
