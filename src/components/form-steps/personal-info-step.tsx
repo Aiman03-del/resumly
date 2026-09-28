@@ -44,6 +44,18 @@ export function PersonalInfoStep({
     <div className="space-y-4">
       <h2 className="text-lg font-semibold">Personal Information</h2>
 
+      <ImageUpload
+        value={values.photoUrl}
+        onUploaded={(url) => {
+          setValue("photoUrl", url);
+          onChange({ ...values, photoUrl: url });
+        }}
+        onRemoved={() => {
+          setValue("photoUrl", undefined);
+          onChange({ ...values, photoUrl: undefined });
+        }}
+      />
+
       <div>
         <label className="text-sm font-medium">Full Name</label>
         <input
@@ -104,10 +116,6 @@ export function PersonalInfoStep({
         />
       </div>
 
-      <div>
-        <label className="text-sm font-medium block mb-1">Profile Photo</label>
-        <ImageUpload onUploaded={(url) => { setValue("photoUrl", url); onChange({ ...values, photoUrl: url }); }} />
-      </div>
     </div>
   );
 }
