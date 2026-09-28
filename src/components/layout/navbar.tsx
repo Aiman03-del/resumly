@@ -2,7 +2,8 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { FileText, LogOut, Menu, X } from "lucide-react";
+import { LogOut, Menu, X } from "lucide-react";
+import { Logo } from "@/components/logo";
 import { createClient } from "@/lib/supabase/client";
 import type { User } from "@supabase/supabase-js";
 
@@ -50,11 +51,8 @@ export function Navbar() {
     <header className="no-print sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-md">
       <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
         <div className="flex items-center gap-10">
-          <Link href="/" className="flex items-center gap-2 font-semibold text-lg">
-            <span className="w-7 h-7 rounded-md bg-primary flex items-center justify-center text-primary-fg">
-              <FileText size={16} />
-            </span>
-            Resumly
+          <Link href="/" aria-label="Resumly home" className="flex items-center">
+            <Logo size={40} priority />
           </Link>
 
           <nav className="hidden md:flex items-center gap-6">

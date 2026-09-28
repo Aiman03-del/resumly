@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { FileText } from "lucide-react";
+import { Logo } from "@/components/logo";
 
 const FOOTER_LINKS = [
   {
@@ -32,11 +32,8 @@ export function Footer() {
       <div className="max-w-6xl mx-auto px-6 py-12">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-10">
           <div className="col-span-2 md:col-span-1">
-            <Link href="/" className="flex items-center gap-2 font-semibold text-lg">
-              <span className="w-7 h-7 rounded-md bg-primary flex items-center justify-center text-primary-fg">
-                <FileText size={16} />
-              </span>
-              Resumly
+            <Link href="/" aria-label="Resumly home" className="inline-flex items-center">
+              <Logo size={44} />
             </Link>
             <p className="mt-3 text-sm text-foreground/60 max-w-xs">
               Build a clean, professional resume in minutes.

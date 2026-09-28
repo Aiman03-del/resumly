@@ -45,6 +45,14 @@ export function DownloadMenu({
         height: element.scrollHeight,
         windowWidth: element.scrollWidth,
         windowHeight: element.scrollHeight,
+        // The export copy sits off-screen; lay it out normally inside the clone.
+        onclone: (_clonedDocument, clonedElement) => {
+          const wrapper = clonedElement.parentElement;
+          if (wrapper) {
+            wrapper.style.position = "static";
+            wrapper.style.left = "0";
+          }
+        },
       });
 
       if (format === "pdf") {

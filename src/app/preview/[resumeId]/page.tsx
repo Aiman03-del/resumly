@@ -4,6 +4,7 @@ import { useParams } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { ResumeRenderer } from "@/components/templates";
+import { ScaledPreview } from "@/components/scaled-preview";
 import type { ResumeData } from "@/types/resume";
 import { normalizeOrder } from "@/lib/section-order";
 import { Printer, Pencil, ArrowLeft } from "lucide-react";
@@ -140,7 +141,18 @@ export default function PreviewPage() {
       </div>
 
       <div className="max-w-4xl mx-auto py-6 sm:py-8 px-4 sm:px-6">
-        <div className="print-area rounded-lg overflow-hidden shadow-lg">
+        {/* On-screen copy: always laid out at 800px, then scaled down to fit — phones and laptops see the same page. */}
+        <div className="rounded-lg overflow-hidden shadow-lg bg-white print:hidden">
+          <ScaledPreview>
+            <ResumeRenderer templateId={templateId} data={data} accentColor={accentColor} />
+          </ScaledPreview>
+        </div>
+
+        {/* Fixed-width copy used for PDF/PNG export and printing, so files look identical on every device. */}
+        <div
+          aria-hidden
+          className="print-area fixed -left-[10000px] top-0 w-[800px] pointer-events-none print:static print:left-auto print:w-full print:pointer-events-auto"
+        >
           <div ref={resumeRef}>
             <ResumeRenderer templateId={templateId} data={data} accentColor={accentColor} />
           </div>
