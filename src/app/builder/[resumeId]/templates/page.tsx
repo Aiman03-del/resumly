@@ -4,12 +4,15 @@ import { useParams, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { TemplatePicker } from "@/components/template-picker";
 import { ColorPalette } from "@/components/color-palette";
+import { FontPicker } from "@/components/font-picker";
+import { SectionOrderList } from "@/components/section-order-list";
 import { SectionDndProvider } from "@/components/sortable-section";
 import { ResumeRenderer } from "@/components/templates";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { ResumeData } from "@/types/resume";
 import { normalizeOrder, type SectionKey } from "@/lib/section-order";
 import { isHexColor, themeStyle } from "@/lib/theme";
+import { DEFAULT_RESUME_FONT } from "@/lib/font";
 import { toast } from "sonner";
 
 export default function TemplateSelectPage() {
@@ -18,6 +21,7 @@ export default function TemplateSelectPage() {
   const supabase = useMemo(() => createClient(), []);
 
   const [selected, setSelected] = useState("modern");
+  const [fontFamily, setFontFamily] = useState(DEFAULT_RESUME_FONT);
   const [themeColor, setThemeColor] = useState<string | null>(null);
   const [sectionOrder, setSectionOrder] = useState<SectionKey[]>(normalizeOrder());
   const [resumeData, setResumeData] = useState<ResumeData | null>(null);
@@ -28,18 +32,32 @@ export default function TemplateSelectPage() {
     async function load() {
       const { data } = await supabase.from("resumes").select("*").eq("id", resumeId).single();
       if (data) {
+        const savedPersonalInfo = data.personal_info ?? {
+          fullName: "",
+          email: "",
+          phone: "",
+        };
+
         setSelected(data.template_id ?? "modern");
+        setFontFamily(savedPersonalInfo.fontFamily ?? DEFAULT_RESUME_FONT);
         setThemeColor(isHexColor(data.theme_color) ? data.theme_color : isHexColor(data.accent_color) ? data.accent_color : null);
         setSectionOrder(normalizeOrder(data.section_order));
         setResumeData({
-          personalInfo: data.personal_info ?? { fullName: "", email: "", phone: "" },
+          personalInfo: savedPersonalInfo,
           summary: typeof data.summary === "string" ? data.summary : data.summary?.text ?? "",
           experience: data.experience ?? [],
           education: data.education ?? [],
           skills: data.skills ?? [],
           projects: data.projects ?? [],
+          certifications: data.certifications ?? [],
+          languages: data.languages ?? [],
+          achievements: data.achievements ?? [],
+          awards: data.awards ?? [],
+          publications: data.publications ?? [],
+          courses: data.courses ?? [],
           sectionOrder: normalizeOrder(data.section_order),
           themeColor: isHexColor(data.theme_color) ? data.theme_color : undefined,
+          fontFamily: savedPersonalInfo.fontFamily ?? DEFAULT_RESUME_FONT,
         });
       }
       setLoading(false);
@@ -49,6 +67,11 @@ export default function TemplateSelectPage() {
 
   async function handleContinue() {
     setSaving(true);
+    const updatedPersonalInfo = {
+      ...resumeData?.personalInfo,
+      fontFamily,
+    };
+
     const { error } = await supabase
       .from("resumes")
       .update({
@@ -56,13 +79,20 @@ export default function TemplateSelectPage() {
         accent_color: themeColor,
         theme_color: themeColor,
         section_order: sectionOrder,
+        personal_info: updatedPersonalInfo,
         status: "polished",
       })
       .eq("id", resumeId);
     if (error) {
       const retry = await supabase
         .from("resumes")
-        .update({ template_id: selected, accent_color: themeColor, section_order: sectionOrder, status: "polished" })
+        .update({
+          template_id: selected,
+          accent_color: themeColor,
+          section_order: sectionOrder,
+          personal_info: updatedPersonalInfo,
+          status: "polished",
+        })
         .eq("id", resumeId);
       if (retry.error) {
         toast.error("Could not save template settings", { description: retry.error.message });
@@ -87,7 +117,12 @@ export default function TemplateSelectPage() {
     );
   }
 
-  const previewData: ResumeData = { ...resumeData, sectionOrder, themeColor: themeColor ?? undefined };
+  const previewData: ResumeData = {
+    ...resumeData,
+    sectionOrder,
+    themeColor: themeColor ?? undefined,
+    fontFamily,
+  };
 
   return (
     <div className="max-w-6xl mx-auto py-10 px-6">
@@ -98,9 +133,24 @@ export default function TemplateSelectPage() {
 
       <div className="grid lg:grid-cols-[460px_1fr] gap-6 mt-5 items-start">
         <aside className="space-y-4 lg:sticky lg:top-20 lg:max-h-[calc(100vh-6rem)] lg:overflow-y-auto lg:pr-1">
-          <ColorPalette value={themeColor} onChange={setThemeColor} />
+          <ColorPalette
+            value={themeColor}
+            onChange={setThemeColor}
+          />
+
+          <FontPicker
+            value={fontFamily}
+            onChange={setFontFamily}
+          />
+
+          <SectionOrderList order={sectionOrder} onChange={setSectionOrder} />
+
           <div style={themeStyle(themeColor)}>
-            <TemplatePicker variant="list" selected={selected} onSelect={setSelected} />
+            <TemplatePicker
+              variant="list"
+              selected={selected}
+              onSelect={setSelected}
+            />
           </div>
         </aside>
 

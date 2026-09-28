@@ -1,10 +1,20 @@
 import type { ResumeData } from "@/types/resume";
 import { normalizeOrder, pickOrder } from "@/lib/section-order";
 import { renderSections } from "@/lib/render-sections";
+import { AdditionalResumeSections } from "./additional-resume-sections";
 
 export function CompactTemplate({ data }: { data: ResumeData }) {
   const fullOrder = normalizeOrder(data.sectionOrder);
-  const mainOrder = pickOrder(fullOrder, ["experience", "projects"]);
+  const mainOrder = pickOrder(fullOrder, [
+    "experience",
+    "projects",
+    "certifications",
+    "languages",
+    "achievements",
+    "awards",
+    "publications",
+    "courses",
+  ]);
   const sideOrder = pickOrder(fullOrder, ["education", "skills"]);
 
   const mainSections = {
@@ -35,6 +45,12 @@ export function CompactTemplate({ data }: { data: ResumeData }) {
         ))}
       </div>
     ) : null,
+    certifications: <AdditionalResumeSections data={data} section="certifications" />,
+    languages: <AdditionalResumeSections data={data} section="languages" />,
+    achievements: <AdditionalResumeSections data={data} section="achievements" />,
+    awards: <AdditionalResumeSections data={data} section="awards" />,
+    publications: <AdditionalResumeSections data={data} section="publications" />,
+    courses: <AdditionalResumeSections data={data} section="courses" />,
   };
 
   const sideSections = {

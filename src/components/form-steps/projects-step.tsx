@@ -135,7 +135,7 @@ export function ProjectsStep({
 
   return (
     <div className="space-y-5">
-      <h2 className="text-lg font-semibold">Projects</h2>
+      <h2 className="text-lg sm:text-xl font-semibold">Projects</h2>
 
       {fields.map((field, index) => {
         const row = liveItems[index];
@@ -160,7 +160,7 @@ export function ProjectsStep({
               <label className="text-sm font-medium">Project Name</label>
               <input
                 {...register(`items.${index}.name`)}
-                className="w-full mt-1 px-3 py-2 rounded-lg border border-border bg-background"
+                className="w-full min-w-0 mt-1 px-3 py-2.5 rounded-lg border border-border bg-background text-sm sm:text-base outline-none focus:ring-2 focus:ring-primary/20"
                 placeholder="Resumly"
               />
               {errors.items?.[index]?.name && (
@@ -183,7 +183,7 @@ export function ProjectsStep({
               </div>
               <div className="space-y-2 mt-1">
                 {links.map((linkValue, linkIndex) => (
-                  <div key={linkIndex} className="flex gap-2">
+                  <div key={linkIndex} className="flex flex-col sm:flex-row gap-2">
                     <div className="flex-1 min-w-0 relative">
                       <Link2
                         size={14}
@@ -193,7 +193,7 @@ export function ProjectsStep({
                         value={linkValue ?? ""}
                         onChange={(event) => handleLinkChange(index, linkIndex, event.target.value)}
                         onBlur={() => void trigger(`items.${index}.links`)}
-                        className="w-full pl-8 pr-3 py-2 rounded-lg border border-border bg-background"
+                        className="w-full min-w-0 pl-8 pr-3 py-2.5 rounded-lg border border-border bg-background text-sm sm:text-base outline-none focus:ring-2 focus:ring-primary/20"
                         placeholder={linkIndex === 0 ? "https://github.com/username/project" : "https://your-live-demo.com"}
                       />
                     </div>
@@ -212,7 +212,7 @@ export function ProjectsStep({
                         type="button"
                         onClick={() => handleGenerateFromLink(index)}
                         disabled={generatingIndex === index}
-                        className="shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-lg bg-accent/10 text-accent border border-accent/30 hover:bg-accent/20 transition-colors text-xs font-medium disabled:opacity-60"
+                        className="w-full sm:w-auto shrink-0 flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg bg-accent/10 text-accent border border-accent/30 hover:bg-accent/20 transition-colors text-xs font-medium disabled:opacity-60"
                         title="Generate description using AI from these links (links optional)"
                       >
                         {generatingIndex === index ? (
@@ -248,7 +248,7 @@ export function ProjectsStep({
                   {...register(`items.${index}.description`)}
                   rows={2}
                   readOnly={busy}
-                  className="w-full px-3 py-2 rounded-lg border border-border bg-background"
+                  className="w-full min-w-0 px-3 py-2.5 rounded-lg border border-border bg-background text-sm sm:text-base resize-y"
                   placeholder="What does this project do?"
                 />
                 {busy && (

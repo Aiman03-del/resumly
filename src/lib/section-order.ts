@@ -1,4 +1,20 @@
-export type SectionKey = "summary" | "experience" | "education" | "skills" | "projects";
+export type SectionKey =
+  | "summary"
+  | "experience"
+  | "education"
+  | "skills"
+  | "projects"
+  | "certifications"
+  | "languages"
+  | "achievements"
+  | "awards"
+  | "publications"
+  | "courses";
+
+export type AdditionalSectionKey = Extract<
+  SectionKey,
+  "certifications" | "languages" | "achievements" | "awards" | "publications" | "courses"
+>;
 
 export const SECTION_LABELS: Record<SectionKey, string> = {
   summary: "Summary",
@@ -6,6 +22,12 @@ export const SECTION_LABELS: Record<SectionKey, string> = {
   education: "Education",
   skills: "Skills",
   projects: "Projects",
+  certifications: "Certifications",
+  languages: "Languages",
+  achievements: "Achievements",
+  awards: "Awards & Honors",
+  publications: "Publications",
+  courses: "Courses & Training",
 };
 
 export const DEFAULT_SECTION_ORDER: SectionKey[] = [
@@ -14,6 +36,12 @@ export const DEFAULT_SECTION_ORDER: SectionKey[] = [
   "education",
   "skills",
   "projects",
+  "certifications",
+  "languages",
+  "achievements",
+  "awards",
+  "publications",
+  "courses",
 ];
 
 export function normalizeOrder(order?: string[] | null): SectionKey[] {

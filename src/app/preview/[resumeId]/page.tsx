@@ -41,8 +41,15 @@ export default function PreviewPage() {
           education: resume.education ?? [],
           skills: resume.skills ?? [],
           projects: resume.projects ?? [],
+          certifications: resume.certifications ?? [],
+          languages: resume.languages ?? [],
+          achievements: resume.achievements ?? [],
+          awards: resume.awards ?? [],
+          publications: resume.publications ?? [],
+          courses: resume.courses ?? [],
           themeColor: resume.theme_color ?? undefined,
           sectionOrder: normalizeOrder(resume.section_order),
+          fontFamily: resume.personal_info?.fontFamily ?? undefined,
         });
         setTemplateId(resume.template_id ?? "modern");
         setAccentColor(resume.accent_color ?? undefined);

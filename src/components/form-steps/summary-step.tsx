@@ -23,7 +23,7 @@ export function SummaryStep({
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold">Professional Summary</h2>
+        <h2 className="text-lg sm:text-xl font-semibold">Professional Summary</h2>
         <PolishButton
           section="summary"
           content={summary}
@@ -38,7 +38,7 @@ export function SummaryStep({
           onChange={(event) => { setSummary(event.target.value); onChange(event.target.value); }}
           rows={5}
           disabled={generating}
-          className="w-full px-3 py-2 rounded-lg border border-border bg-background disabled:opacity-60"
+          className="w-full min-w-0 min-h-40 px-3 py-2.5 rounded-lg border border-border bg-background text-sm sm:text-base resize-y disabled:opacity-60"
           placeholder="Optional: jot a line about your career aim — or leave this empty and click AI to generate a full summary from your role, experience, and projects."
         />
         {generating && (

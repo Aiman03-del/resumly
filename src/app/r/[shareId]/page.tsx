@@ -18,6 +18,12 @@ type SharedRow = {
   education?: ResumeData["education"] | null;
   skills?: ResumeData["skills"] | null;
   projects?: ResumeData["projects"] | null;
+  certifications?: ResumeData["certifications"] | null;
+  languages?: ResumeData["languages"] | null;
+  achievements?: ResumeData["achievements"] | null;
+  awards?: ResumeData["awards"] | null;
+  publications?: ResumeData["publications"] | null;
+  courses?: ResumeData["courses"] | null;
   template_id?: string | null;
   theme_color?: string | null;
   accent_color?: string | null;
@@ -43,8 +49,15 @@ const loadSharedResume = cache(async (shareId: string) => {
     education: row.education ?? [],
     skills: row.skills ?? [],
     projects: row.projects ?? [],
+    certifications: row.certifications ?? [],
+    languages: row.languages ?? [],
+    achievements: row.achievements ?? [],
+    awards: row.awards ?? [],
+    publications: row.publications ?? [],
+    courses: row.courses ?? [],
     themeColor: isHexColor(row.theme_color) ? row.theme_color : undefined,
     sectionOrder: normalizeOrder(row.section_order),
+    fontFamily: row.personal_info?.fontFamily ?? undefined,
   };
 
   return {

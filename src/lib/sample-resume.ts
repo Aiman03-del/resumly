@@ -43,4 +43,10 @@ export const sampleResumeData: ResumeData = {
       description: "An AI-assisted resume builder with 10 templates and instant PDF export.",
     },
   ],
+  certifications: [],
+  languages: [],
+  achievements: [],
+  awards: [],
+  publications: [],
+  courses: [],
 };

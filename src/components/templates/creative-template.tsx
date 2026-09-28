@@ -1,6 +1,7 @@
 import type { ResumeData } from "@/types/resume";
 import { normalizeOrder, pickOrder } from "@/lib/section-order";
 import { renderSections } from "@/lib/render-sections";
+import { AdditionalResumeSections } from "./additional-resume-sections";
 
 function SectionTitle({ children }: { children: React.ReactNode }) {
   return (
@@ -23,7 +24,17 @@ function SidebarSectionTitle({ children }: { children: React.ReactNode }) {
 export function CreativeTemplate({ data }: { data: ResumeData }) {
   const fullOrder = normalizeOrder(data.sectionOrder);
   const sidebarOrder = pickOrder(fullOrder, ["skills", "education"]);
-  const mainOrder = pickOrder(fullOrder, ["summary", "experience", "projects"]);
+  const mainOrder = pickOrder(fullOrder, [
+    "summary",
+    "experience",
+    "projects",
+    "certifications",
+    "languages",
+    "achievements",
+    "awards",
+    "publications",
+    "courses",
+  ]);
 
   const sidebarSections = {
     skills: (
@@ -95,6 +106,12 @@ export function CreativeTemplate({ data }: { data: ResumeData }) {
         })}
       </section>
     ) : null,
+    certifications: <AdditionalResumeSections data={data} section="certifications" />,
+    languages: <AdditionalResumeSections data={data} section="languages" />,
+    achievements: <AdditionalResumeSections data={data} section="achievements" />,
+    awards: <AdditionalResumeSections data={data} section="awards" />,
+    publications: <AdditionalResumeSections data={data} section="publications" />,
+    courses: <AdditionalResumeSections data={data} section="courses" />,
   };
 
   return (

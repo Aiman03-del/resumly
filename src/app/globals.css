@@ -180,3 +180,37 @@ body {
     margin: 0.5in;
   }
 }
+
+/* =========================================
+   Mobile Resume Builder
+   ========================================= */
+
+@media (max-width: 639px) {
+  html,
+  body {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+
+  * {
+    min-width: 0;
+  }
+
+  input,
+  textarea,
+  select,
+  button {
+    max-width: 100%;
+  }
+
+  textarea {
+    overflow-wrap: anywhere;
+  }
+
+  input,
+  textarea,
+  select {
+    font-size: 16px;
+  }
+}

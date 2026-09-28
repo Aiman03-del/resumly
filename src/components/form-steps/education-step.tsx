@@ -36,7 +36,7 @@ export function EducationStep({
 
   return (
     <div className="space-y-5">
-      <h2 className="text-lg font-semibold">Education</h2>
+      <h2 className="text-lg sm:text-xl font-semibold">Education</h2>
 
       {fields.map((field, index) => (
         <div key={field.id} className="p-4 rounded-xl border border-border space-y-3 relative">
@@ -48,12 +48,12 @@ export function EducationStep({
             <Trash2 size={16} />
           </button>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="text-sm font-medium">Institution</label>
               <input
                 {...register(`items.${index}.institution`)}
-                className="w-full mt-1 px-3 py-2 rounded-lg border border-border bg-background"
+                className="w-full min-w-0 mt-1 px-3 py-2.5 rounded-lg border border-border bg-background text-sm sm:text-base outline-none focus:ring-2 focus:ring-primary/20"
                 placeholder="University name"
               />
             </div>
@@ -61,22 +61,22 @@ export function EducationStep({
               <label className="text-sm font-medium">Degree</label>
               <input
                 {...register(`items.${index}.degree`)}
-                className="w-full mt-1 px-3 py-2 rounded-lg border border-border bg-background"
+                className="w-full min-w-0 mt-1 px-3 py-2.5 rounded-lg border border-border bg-background text-sm sm:text-base outline-none focus:ring-2 focus:ring-primary/20"
                 placeholder="B.Sc. in Computer Science"
               />
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="text-sm font-medium">Start Date</label>
               <input {...register(`items.${index}.startDate`)} type="month"
-                className="w-full mt-1 px-3 py-2 rounded-lg border border-border bg-background" />
+                className="w-full min-w-0 mt-1 px-3 py-2.5 rounded-lg border border-border bg-background text-sm sm:text-base outline-none focus:ring-2 focus:ring-primary/20" />
             </div>
             <div>
               <label className="text-sm font-medium">End Date</label>
               <input {...register(`items.${index}.endDate`)} type="month"
-                className="w-full mt-1 px-3 py-2 rounded-lg border border-border bg-background" />
+                className="w-full min-w-0 mt-1 px-3 py-2.5 rounded-lg border border-border bg-background text-sm sm:text-base outline-none focus:ring-2 focus:ring-primary/20" />
             </div>
           </div>
         </div>

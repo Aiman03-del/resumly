@@ -8,6 +8,9 @@ import { ExperienceStep } from "@/components/form-steps/experience-step";
 import { EducationStep } from "@/components/form-steps/education-step";
 import { SkillsStep } from "@/components/form-steps/skills-step";
 import { ProjectsStep } from "@/components/form-steps/projects-step";
+import { CertificationsStep } from "@/components/form-steps/certifications-step";
+import { LanguagesStep } from "@/components/form-steps/languages-step";
+import { AdditionalSectionStep } from "@/components/form-steps/additional-sections-step";
 import { SummaryStep } from "@/components/form-steps/summary-step";
 import { Loader2, Check, ChevronLeft, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
@@ -18,13 +21,32 @@ type ResumeFormData = Partial<Omit<ResumeData, "personalInfo">> & {
   personalInfo?: Partial<ResumeData["personalInfo"]>;
 };
 
-const steps = ["personal", "experience", "education", "skills", "projects", "summary"] as const;
+const steps = [
+  "personal",
+  "experience",
+  "education",
+  "skills",
+  "projects",
+  "certifications",
+  "languages",
+  "achievements",
+  "awards",
+  "publications",
+  "courses",
+  "summary",
+] as const;
 const stepLabels: Record<(typeof steps)[number], string> = {
   personal: "Personal Info",
   experience: "Experience",
   education: "Education",
   skills: "Skills",
   projects: "Projects",
+  certifications: "Certifications",
+  languages: "Languages",
+  achievements: "Achievements",
+  awards: "Awards & Honors",
+  publications: "Publications",
+  courses: "Courses / Training",
   summary: "Summary",
 };
 
@@ -61,12 +83,18 @@ export function ResumeBuilderForm({ initialResumeId }: { initialResumeId?: strin
         .single();
       if (!error && data) {
         setResumeData({
-          personalInfo: data.personal_info,
-          experience: data.experience,
-          education: data.education,
-          skills: data.skills,
-          projects: data.projects,
+          personalInfo: data.personal_info ?? {},
+          experience: data.experience ?? [],
+          education: data.education ?? [],
+          skills: data.skills ?? [],
+          projects: data.projects ?? [],
           summary: data.summary?.text ?? data.summary ?? "",
+          certifications: data.certifications ?? [],
+          languages: data.languages ?? [],
+          achievements: data.achievements ?? [],
+          awards: data.awards ?? [],
+          publications: data.publications ?? [],
+          courses: data.courses ?? [],
         });
       }
       setLoading(false);
@@ -185,7 +213,7 @@ export function ResumeBuilderForm({ initialResumeId }: { initialResumeId?: strin
     return (
       <div className="max-w-2xl mx-auto py-10 px-6">
         <div className="flex gap-2 mb-8">
-          {Array.from({ length: 6 }, (_, index) => (
+          {Array.from({ length: steps.length }, (_, index) => (
             <Skeleton key={index} className="h-1.5 flex-1 rounded-full" />
           ))}
         </div>
@@ -203,8 +231,8 @@ export function ResumeBuilderForm({ initialResumeId }: { initialResumeId?: strin
   }
 
   return (
-    <div className="max-w-5xl mx-auto py-10 px-6">
-      <div className="max-w-sm mx-auto flex items-center gap-2 mb-8">
+    <div className="w-full max-w-5xl mx-auto py-6 sm:py-10 px-4 sm:px-6">
+      <div className="w-full max-w-sm mx-auto flex items-center gap-2 mb-6 sm:mb-8">
         <div className="flex gap-1 flex-1">
           {steps.map((step, index) => (
             <button
@@ -223,7 +251,7 @@ export function ResumeBuilderForm({ initialResumeId }: { initialResumeId?: strin
               aria-current={index === stepIndex ? "step" : undefined}
             >
               <div className={`h-1 rounded-full transition-colors ${index <= stepIndex ? "bg-primary" : "bg-muted group-hover:bg-primary/40"}`} />
-              <span className="pointer-events-none absolute left-1/2 -translate-x-1/2 top-full mt-2 whitespace-nowrap rounded-md bg-foreground text-background text-xs px-2 py-1 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+              <span className="pointer-events-none absolute left-1/2 -translate-x-1/2 top-full mt-2 whitespace-nowrap rounded-md bg-foreground text-background text-xs px-2 py-1 opacity-0 group-hover:opacity-100 transition-opacity z-10 hidden sm:block">
                 {stepLabels[step]}
               </span>
             </button>
@@ -280,12 +308,12 @@ export function ResumeBuilderForm({ initialResumeId }: { initialResumeId?: strin
         </p>
       )}
 
-      <div className="flex items-center gap-6 lg:gap-10">
+      <div className="flex items-center gap-2 sm:gap-6 lg:gap-10">
         <button
           type="button"
           onClick={() => goToStep(Math.max(0, stepIndex - 1))}
           disabled={stepIndex === 0}
-          className="shrink-0 p-3 rounded-full border border-border disabled:opacity-30 disabled:cursor-not-allowed hover:bg-muted transition-colors"
+          className="shrink-0 w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center rounded-full border border-border disabled:opacity-30 disabled:cursor-not-allowed hover:bg-muted transition-colors"
           aria-label="Previous step"
           title="Previous"
         >
@@ -304,7 +332,10 @@ export function ResumeBuilderForm({ initialResumeId }: { initialResumeId?: strin
               {currentStep === "personal" && (
                 <PersonalInfoStep
                   defaultValues={resumeData.personalInfo ?? {}}
-                  onChange={(data) => updateField("personalInfo", "personal_info", data)}
+                  onChange={(data) => updateField("personalInfo", "personal_info", {
+                    ...data,
+                    fontFamily: resumeData.personalInfo?.fontFamily,
+                  })}
                   onValidityChange={setPersonalInfoValid}
                 />
               )}
@@ -330,6 +361,46 @@ export function ResumeBuilderForm({ initialResumeId }: { initialResumeId?: strin
                 <ProjectsStep
                   defaultValues={resumeData.projects ?? []}
                   onChange={(data) => updateField("projects", "projects", data)}
+                />
+              )}
+              {currentStep === "certifications" && (
+                <CertificationsStep
+                  defaultValues={resumeData.certifications ?? []}
+                  onChange={(data) => updateField("certifications", "certifications", data)}
+                />
+              )}
+              {currentStep === "languages" && (
+                <LanguagesStep
+                  defaultValues={resumeData.languages ?? []}
+                  onChange={(data) => updateField("languages", "languages", data)}
+                />
+              )}
+              {currentStep === "achievements" && (
+                <AdditionalSectionStep
+                  type="achievements"
+                  defaultValues={resumeData.achievements ?? []}
+                  onChange={(data) => updateField("achievements", "achievements", data)}
+                />
+              )}
+              {currentStep === "awards" && (
+                <AdditionalSectionStep
+                  type="awards"
+                  defaultValues={resumeData.awards ?? []}
+                  onChange={(data) => updateField("awards", "awards", data)}
+                />
+              )}
+              {currentStep === "publications" && (
+                <AdditionalSectionStep
+                  type="publications"
+                  defaultValues={resumeData.publications ?? []}
+                  onChange={(data) => updateField("publications", "publications", data)}
+                />
+              )}
+              {currentStep === "courses" && (
+                <AdditionalSectionStep
+                  type="courses"
+                  defaultValues={resumeData.courses ?? []}
+                  onChange={(data) => updateField("courses", "courses", data)}
                 />
               )}
               {currentStep === "summary" && (
@@ -365,7 +436,7 @@ export function ResumeBuilderForm({ initialResumeId }: { initialResumeId?: strin
               (currentStep === "skills" && !skillsValid) ||
               (currentStep === "projects" && !projectsValid)
             }
-            className="shrink-0 p-3 rounded-full bg-primary text-primary-fg disabled:opacity-40 disabled:cursor-not-allowed hover:opacity-90 transition-opacity"
+            className="shrink-0 w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center rounded-full bg-primary text-primary-fg disabled:opacity-40 disabled:cursor-not-allowed hover:opacity-90 transition-opacity"
             aria-label="Next step"
             title="Next"
           >

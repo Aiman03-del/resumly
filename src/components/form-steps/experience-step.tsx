@@ -45,7 +45,7 @@ export function ExperienceStep({
 
   return (
     <div className="space-y-5">
-      <h2 className="text-lg font-semibold">Work Experience</h2>
+      <h2 className="text-lg sm:text-xl font-semibold">Work Experience</h2>
 
       {fields.map((field, index) => {
         const row = liveItems[index];
@@ -62,12 +62,12 @@ export function ExperienceStep({
             <Trash2 size={16} />
           </button>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="text-sm font-medium">Company</label>
               <input
                 {...register(`items.${index}.company`)}
-                className="w-full mt-1 px-3 py-2 rounded-lg border border-border bg-background"
+                className="w-full min-w-0 mt-1 px-3 py-2.5 rounded-lg border border-border bg-background text-sm sm:text-base outline-none focus:ring-2 focus:ring-primary/20"
                 placeholder="Acme Inc."
               />
             </div>
@@ -75,19 +75,19 @@ export function ExperienceStep({
               <label className="text-sm font-medium">Role</label>
               <input
                 {...register(`items.${index}.role`)}
-                className="w-full mt-1 px-3 py-2 rounded-lg border border-border bg-background"
+                className="w-full min-w-0 mt-1 px-3 py-2.5 rounded-lg border border-border bg-background text-sm sm:text-base outline-none focus:ring-2 focus:ring-primary/20"
                 placeholder="Software Engineer"
               />
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="text-sm font-medium">Start Date</label>
               <input
                 {...register(`items.${index}.startDate`)}
                 type="month"
-                className="w-full mt-1 px-3 py-2 rounded-lg border border-border bg-background"
+                className="w-full min-w-0 mt-1 px-3 py-2.5 rounded-lg border border-border bg-background text-sm sm:text-base outline-none focus:ring-2 focus:ring-primary/20"
               />
             </div>
             <div>
@@ -95,7 +95,7 @@ export function ExperienceStep({
               <input
                 {...register(`items.${index}.endDate`)}
                 type="month"
-                className="w-full mt-1 px-3 py-2 rounded-lg border border-border bg-background"
+                className="w-full min-w-0 mt-1 px-3 py-2.5 rounded-lg border border-border bg-background text-sm sm:text-base outline-none focus:ring-2 focus:ring-primary/20"
               />
             </div>
           </div>
@@ -118,7 +118,7 @@ export function ExperienceStep({
                 {...register(`items.${index}.description`)}
                 rows={3}
                 readOnly={polishingIndex === index}
-                className="w-full px-3 py-2 rounded-lg border border-border bg-background"
+                className="w-full min-w-0 px-3 py-2.5 rounded-lg border border-border bg-background text-sm sm:text-base resize-y"
                 placeholder="What did you do and achieve in this role?"
               />
               {polishingIndex === index && (

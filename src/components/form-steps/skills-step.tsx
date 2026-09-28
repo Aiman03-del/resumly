@@ -41,7 +41,7 @@ export function SkillsStep({
 
   return (
     <div className="space-y-4">
-      <h2 className="text-lg font-semibold">Skills</h2>
+      <h2 className="text-lg sm:text-xl font-semibold">Skills</h2>
 
       <div className="relative">
         <input
@@ -62,7 +62,7 @@ export function SkillsStep({
           }}
           onFocus={() => setShowSuggestions(true)}
           placeholder="Type a skill and press Enter (e.g. React, TypeScript)"
-          className="w-full px-3 py-2 rounded-lg border border-border bg-background"
+          className="w-full min-w-0 px-3 py-2.5 rounded-lg border border-border bg-background text-sm sm:text-base outline-none focus:ring-2 focus:ring-primary/20"
         />
 
         {showSuggestions && suggestions.length > 0 && (
@@ -84,11 +84,11 @@ export function SkillsStep({
         )}
       </div>
 
-      <div className="flex flex-wrap gap-2">
+      <div className="flex flex-wrap gap-2 max-w-full overflow-hidden">
         {skills.map((skill) => (
           <span
             key={skill}
-            className="flex items-center gap-1.5 bg-primary/10 text-primary px-3 py-1.5 rounded-full text-sm"
+            className="max-w-full flex items-center gap-1.5 bg-primary/10 text-primary px-3 py-1.5 rounded-full text-sm break-all"
           >
             {skill}
             <button type="button" onClick={() => removeSkill(skill)} aria-label={`Remove ${skill}`}>

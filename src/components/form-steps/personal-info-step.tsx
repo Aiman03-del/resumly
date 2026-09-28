@@ -42,7 +42,7 @@ export function PersonalInfoStep({
 
   return (
     <div className="space-y-4">
-      <h2 className="text-lg font-semibold">Personal Information</h2>
+      <h2 className="text-lg sm:text-xl font-semibold">Personal Information</h2>
 
       <ImageUpload
         value={values.photoUrl}
@@ -61,7 +61,7 @@ export function PersonalInfoStep({
         <input
           {...register("fullName")}
           onBlur={handleBlur}
-          className="w-full mt-1 px-3 py-2 rounded-lg border border-border bg-background"
+          className="w-full min-w-0 mt-1 px-3 py-2.5 rounded-lg border border-border bg-background text-sm sm:text-base outline-none focus:ring-2 focus:ring-primary/20"
           placeholder="John Doe"
         />
         {errors.fullName && <p className="text-xs text-red-500 mt-1">{errors.fullName.message}</p>}
@@ -73,7 +73,7 @@ export function PersonalInfoStep({
           {...register("role")}
           onBlur={handleBlur}
           list="role-suggestions"
-          className="w-full mt-1 px-3 py-2 rounded-lg border border-border bg-background"
+          className="w-full min-w-0 mt-1 px-3 py-2.5 rounded-lg border border-border bg-background text-sm sm:text-base outline-none focus:ring-2 focus:ring-primary/20"
           placeholder="e.g. Web Developer, Graphic Designer"
         />
         <datalist id="role-suggestions">
@@ -83,13 +83,13 @@ export function PersonalInfoStep({
         </datalist>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <label className="text-sm font-medium">Email</label>
           <input
             {...register("email")}
             onBlur={handleBlur}
-            className="w-full mt-1 px-3 py-2 rounded-lg border border-border bg-background"
+            className="w-full min-w-0 mt-1 px-3 py-2.5 rounded-lg border border-border bg-background text-sm sm:text-base outline-none focus:ring-2 focus:ring-primary/20"
             placeholder="john@example.com"
           />
           {errors.email && <p className="text-xs text-red-500 mt-1">{errors.email.message}</p>}
@@ -99,7 +99,7 @@ export function PersonalInfoStep({
           <input
             {...register("phone")}
             onBlur={handleBlur}
-            className="w-full mt-1 px-3 py-2 rounded-lg border border-border bg-background"
+            className="w-full min-w-0 mt-1 px-3 py-2.5 rounded-lg border border-border bg-background text-sm sm:text-base outline-none focus:ring-2 focus:ring-primary/20"
             placeholder="+880 1XXXXXXXXX"
           />
           {errors.phone && <p className="text-xs text-red-500 mt-1">{errors.phone.message}</p>}
@@ -111,7 +111,7 @@ export function PersonalInfoStep({
         <input
           {...register("location")}
           onBlur={handleBlur}
-          className="w-full mt-1 px-3 py-2 rounded-lg border border-border bg-background"
+          className="w-full min-w-0 mt-1 px-3 py-2.5 rounded-lg border border-border bg-background text-sm sm:text-base outline-none focus:ring-2 focus:ring-primary/20"
           placeholder="Dhaka, Bangladesh"
         />
       </div>

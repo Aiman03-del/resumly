@@ -18,12 +18,57 @@ export const experienceSchema = z.object({
   description: z.string(),
 });
 
+export const certificationSchema = z.object({
+  name: z.string().min(1),
+  issuer: z.string().min(1),
+  issueDate: z.string().optional(),
+  expiryDate: z.string().optional(),
+  credentialId: z.string().optional(),
+  credentialUrl: z.string().optional(),
+});
+
+export const languageSchema = z.object({
+  name: z.string().min(1),
+  proficiency: z.string().min(1),
+});
+
+export const achievementSchema = z.object({
+  title: z.string().min(1),
+  organization: z.string().optional(),
+  date: z.string().optional(),
+  description: z.string().optional(),
+});
+
+export const awardSchema = z.object({
+  title: z.string().min(1),
+  issuer: z.string().optional(),
+  date: z.string().optional(),
+  description: z.string().optional(),
+});
+
+export const publicationSchema = z.object({
+  title: z.string().min(1),
+  publisher: z.string().optional(),
+  date: z.string().optional(),
+  url: z.string().optional(),
+  description: z.string().optional(),
+});
+
+export const courseSchema = z.object({
+  name: z.string().min(1),
+  provider: z.string().optional(),
+  date: z.string().optional(),
+  credentialUrl: z.string().optional(),
+  description: z.string().optional(),
+});
+
 export type PersonalInfo = z.infer<typeof personalInfoSchema>;
 export type Experience = z.infer<typeof experienceSchema>;
 
 export interface ResumeData {
   templateId?: string;
   accentColor?: string;
+  fontFamily?: string;
   sectionOrder?: SectionKey[];
   personalInfo: {
     fullName: string;
@@ -32,6 +77,7 @@ export interface ResumeData {
     role?: string;
     location?: string;
     photoUrl?: string;
+    fontFamily?: string;
   };
   summary: string;
   themeColor?: string;
@@ -54,5 +100,43 @@ export interface ResumeData {
     description: string;
     link?: string;
     links?: string[];
+  }[];
+  certifications: {
+    name: string;
+    issuer: string;
+    issueDate?: string;
+    expiryDate?: string;
+    credentialId?: string;
+    credentialUrl?: string;
+  }[];
+  languages: {
+    name: string;
+    proficiency: string;
+  }[];
+  achievements: {
+    title: string;
+    organization?: string;
+    date?: string;
+    description?: string;
+  }[];
+  awards: {
+    title: string;
+    issuer?: string;
+    date?: string;
+    description?: string;
+  }[];
+  publications: {
+    title: string;
+    publisher?: string;
+    date?: string;
+    url?: string;
+    description?: string;
+  }[];
+  courses: {
+    name: string;
+    provider?: string;
+    date?: string;
+    credentialUrl?: string;
+    description?: string;
   }[];
 }

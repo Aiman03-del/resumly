@@ -1,6 +1,7 @@
 import type { ResumeData } from "@/types/resume";
 import { normalizeOrder, pickOrder, type SectionKey } from "@/lib/section-order";
 import { renderSections } from "@/lib/render-sections";
+import { AdditionalResumeSections } from "./additional-resume-sections";
 
 export function ClassicTemplate({ data }: { data: ResumeData }) {
   const order = pickOrder(normalizeOrder(data.sectionOrder), [
@@ -9,6 +10,12 @@ export function ClassicTemplate({ data }: { data: ResumeData }) {
     "education",
     "skills",
     "projects",
+    "certifications",
+    "languages",
+    "achievements",
+    "awards",
+    "publications",
+    "courses",
   ]);
 
   const sections: Record<SectionKey, React.ReactNode> = {
@@ -82,6 +89,12 @@ export function ClassicTemplate({ data }: { data: ResumeData }) {
         })}
       </section>
     ) : null,
+    certifications: <AdditionalResumeSections data={data} section="certifications" />,
+    languages: <AdditionalResumeSections data={data} section="languages" />,
+    achievements: <AdditionalResumeSections data={data} section="achievements" />,
+    awards: <AdditionalResumeSections data={data} section="awards" />,
+    publications: <AdditionalResumeSections data={data} section="publications" />,
+    courses: <AdditionalResumeSections data={data} section="courses" />,
   };
 
   return (

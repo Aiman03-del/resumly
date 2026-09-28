@@ -1,6 +1,8 @@
 import type { ComponentType } from "react";
 import type { ResumeData } from "@/types/resume";
 import { themeStyle } from "@/lib/theme";
+import { getResumeFontCss } from "@/lib/font";
+
 import { ModernTemplate } from "./modern-template";
 import { CreativeTemplate } from "./creative-template";
 import { ClassicTemplate } from "./classic-template";
@@ -35,8 +37,15 @@ export function ResumeRenderer({
   accentColor?: string;
 }) {
   const Template = templateMap[templateId] ?? ModernTemplate;
-  const style = themeStyle(data.themeColor ?? accentColor);
+  const theme = themeStyle(data.themeColor ?? accentColor);
 
-  if (Object.keys(style).length === 0) return <Template data={data} />;
-  return <div style={style}><Template data={data} /></div>;
+  const fontStyle = {
+    fontFamily: getResumeFontCss(data.fontFamily),
+  };
+
+  return (
+    <div style={{ ...theme, ...fontStyle }}>
+      <Template data={data} />
+    </div>
+  );
 }
