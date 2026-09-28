@@ -2,8 +2,8 @@ import { lookup } from "node:dns/promises";
 import { request as httpRequest, type IncomingMessage } from "node:http";
 import { isIP, type LookupFunction } from "node:net";
 import { request as httpsRequest } from "node:https";
-import OpenAI from "openai";
 import { NextRequest, NextResponse } from "next/server";
+import { apiErrorResponse, createGroqClient, HttpError, readJson } from "@/lib/api-error";
 
 export const runtime = "nodejs";
 
@@ -37,7 +37,7 @@ async function validateAndResolve(rawLink: string): Promise<{ url: URL; address:
   try {
     url = new URL(rawLink);
   } catch {
-    throw new Error("Enter a valid project URL");
+    throw new HttpError(400, "Enter a valid project URL");
   }
 
   if (
@@ -47,13 +47,18 @@ async function validateAndResolve(rawLink: string): Promise<{ url: URL; address:
     isIP(url.hostname) !== 0 ||
     /(^|\.)(localhost|local|internal|test|invalid)$/i.test(url.hostname)
   ) {
-    throw new Error("Only public HTTP or HTTPS project links are supported");
+    throw new HttpError(400, "Only public HTTP or HTTPS project links are supported");
   }
 
-  const addresses = await lookup(url.hostname, { all: true, verbatim: true });
+  let addresses: { address: string; family: number }[];
+  try {
+    addresses = await lookup(url.hostname, { all: true, verbatim: true });
+  } catch {
+    throw new HttpError(400, "Could not find that project link. Check the address and try again.");
+  }
   const ipv4Addresses = addresses.filter((entry) => entry.family === 4);
   if (!ipv4Addresses.length || ipv4Addresses.some((entry) => !isPublicIPv4(entry.address))) {
-    throw new Error("The project link must resolve to a public address");
+    throw new HttpError(400, "The project link must resolve to a public address");
   }
 
   return { url, address: ipv4Addresses[0].address };
@@ -156,7 +161,7 @@ const maxLinks = 5;
 
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json() as { link?: unknown; links?: unknown; name?: unknown };
+    const body = (await readJson(req)) as { link?: unknown; links?: unknown; name?: unknown };
     const name = textValue(body.name).slice(0, 120);
     const rawLinks = Array.isArray(body.links)
       ? body.links.map(textValue)
@@ -172,7 +177,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "One of the project links is too long" }, { status: 400 });
     }
     if (!process.env.GROQ_API_KEY) {
-      return NextResponse.json({ error: "AI service is not configured" }, { status: 500 });
+      console.error("GROQ_API_KEY is not set in environment variables");
+      return NextResponse.json({ error: "AI service is temporarily unavailable" }, { status: 503 });
     }
 
     const safeUrls: string[] = [];
@@ -194,7 +200,7 @@ export async function POST(req: NextRequest) {
       );
       if (rejections.length === results.length && results.length > 0) {
         const firstError = rejections[0].reason;
-        throw firstError instanceof Error ? firstError : new Error("Could not process the project links");
+        throw firstError instanceof HttpError ? firstError : new HttpError(400, "Could not process the project links.");
       }
 
       for (const result of results) {
@@ -213,10 +219,7 @@ export async function POST(req: NextRequest) {
         ? `Write a concise, professional 1-2 sentence resume project description for a project called "${name || "this project"}" hosted at ${urlList}. No extra details were available — write a plausible generic description based on the name and URL(s). Return ONLY the description, no preamble.`
         : `Write a concise, professional 1-2 sentence resume project description for a project called "${name}". No link or extra details were given — write a plausible, generic-but-relevant description based only on the project name. Return ONLY the description, no preamble.`;
 
-    const groq = new OpenAI({
-      apiKey: process.env.GROQ_API_KEY,
-      baseURL: "https://api.groq.com/openai/v1",
-    });
+    const groq = createGroqClient();
     const response = await groq.chat.completions.create({
       model: process.env.GROQ_MODEL || "openai/gpt-oss-20b",
       messages: [{ role: "user", content: prompt }],
@@ -225,9 +228,6 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ description: response.choices[0]?.message?.content ?? "" });
   } catch (error: unknown) {
-    console.error("Project link generation error:", error);
-    const message = error instanceof Error ? error.message : "Failed to generate description";
-    const status = message.includes("public") || message.includes("Only public") || message.includes("valid project URL") ? 400 : 500;
-    return NextResponse.json({ error: message }, { status });
+    return apiErrorResponse(error, "api/project-link", "Failed to generate description.");
   }
 }

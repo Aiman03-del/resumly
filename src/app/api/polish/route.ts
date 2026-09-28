@@ -1,7 +1,7 @@
 
-import OpenAI from "openai";
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { apiErrorResponse, createGroqClient } from "@/lib/api-error";
 
 type TextRecord = Record<string, unknown>;
 
@@ -89,10 +89,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const groq = new OpenAI({
-      apiKey: process.env.GROQ_API_KEY,
-      baseURL: "https://api.groq.com/openai/v1",
-    });
+    const groq = createGroqClient();
 
     let prompt: string;
 
@@ -165,11 +162,6 @@ Return ONLY the improved text, no preamble.`;
 
     return NextResponse.json({ polished });
   } catch (error: unknown) {
-    console.error("Polish API error:", error);
-
-    return NextResponse.json(
-      { error: "Something went wrong while polishing the text" },
-      { status: 500 }
-    );
+    return apiErrorResponse(error, "api/polish", "Something went wrong while polishing the text.");
   }
 }
