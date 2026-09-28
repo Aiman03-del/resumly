@@ -4,6 +4,7 @@ import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { AlertCircle, ArrowLeft, Check, Copy, FileText, Loader2, RefreshCw, Sparkles, X } from "lucide-react";
 import type { ResumeData } from "@/types/resume";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 const TONES = [
   { value: "professional", label: "Professional" },
@@ -88,10 +89,14 @@ export function CoverLetter({ data }: { data: ResumeData }) {
 
   return (
     <>
-      <button type="button" onClick={() => setOpen(true)} aria-label="Cover letter" className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-primary/10 text-primary border border-primary/30 hover:bg-primary/20 transition-colors text-sm font-medium">
-        <FileText size={16} />
-        <span className="hidden sm:inline">Cover letter</span>
-      </button>
+      <Tooltip>
+        <TooltipTrigger
+          render={<button type="button" onClick={() => setOpen(true)} aria-label="Cover letter" className="p-2 sm:p-2.5 rounded-lg bg-primary/10 text-primary border border-primary/30 hover:bg-primary/20 transition-colors" />}
+        >
+          <FileText size={16} />
+        </TooltipTrigger>
+        <TooltipContent side="bottom">Cover letter</TooltipContent>
+      </Tooltip>
 
       {mounted && createPortal(
         <AnimatePresence>

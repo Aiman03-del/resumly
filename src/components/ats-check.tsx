@@ -4,6 +4,7 @@ import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { AlertCircle, CheckCircle2, Loader2, RefreshCw, ScanEye, X } from "lucide-react";
 import type { ResumeData } from "@/types/resume";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 type Priority = "high" | "medium" | "low";
 interface AtsResult {
@@ -70,7 +71,14 @@ export function AtsCheck({ data }: { data: ResumeData }) {
   const overall = result ? tone(result.score) : null;
   return (
     <>
-      <button type="button" onClick={openPanel} aria-label="ATS check" className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-accent/10 text-accent border border-accent/30 hover:bg-accent/20 transition-colors text-sm font-medium"><ScanEye size={16} /><span className="hidden sm:inline">ATS check</span></button>
+      <Tooltip>
+        <TooltipTrigger
+          render={<button type="button" onClick={openPanel} aria-label="ATS check" className="p-2 sm:p-2.5 rounded-lg bg-accent/10 text-accent border border-accent/30 hover:bg-accent/20 transition-colors" />}
+        >
+          <ScanEye size={16} />
+        </TooltipTrigger>
+        <TooltipContent side="bottom">ATS check</TooltipContent>
+      </Tooltip>
       {mounted && createPortal(
         <AnimatePresence>
           {open && (

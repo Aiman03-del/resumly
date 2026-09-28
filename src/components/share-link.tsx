@@ -4,6 +4,7 @@ import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { AlertCircle, Check, Copy, ExternalLink, Loader2, Share2, X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 const subscribeNoop = () => () => {};
 
@@ -87,10 +88,14 @@ export function ShareLink({ resumeId }: { resumeId: string }) {
 
   return (
     <>
-      <button type="button" onClick={() => void openPanel()} aria-label="Share" className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-border hover:bg-muted transition-colors text-sm font-medium">
-        <Share2 size={16} />
-        <span className="hidden sm:inline">Share</span>
-      </button>
+      <Tooltip>
+        <TooltipTrigger
+          render={<button type="button" onClick={() => void openPanel()} aria-label="Share" className="p-2 sm:p-2.5 rounded-lg border border-border hover:bg-muted transition-colors" />}
+        >
+          <Share2 size={16} />
+        </TooltipTrigger>
+        <TooltipContent side="bottom">Share</TooltipContent>
+      </Tooltip>
 
       {mounted && createPortal(
         <AnimatePresence>

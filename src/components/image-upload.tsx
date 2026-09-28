@@ -47,7 +47,7 @@ export function ImageUpload({ onUploaded }: { onUploaded: (url: string) => void 
         onChange={(e) => e.target.files?.[0] && handleUpload(e.target.files[0])}
         disabled={uploading}
       />
-      {uploading && <p className="text-sm text-muted-foreground">আপলোড হচ্ছে...</p>}
+      {uploading && <p className="text-sm text-muted-foreground">Uploading...</p>}
     </div>
   );
 }
