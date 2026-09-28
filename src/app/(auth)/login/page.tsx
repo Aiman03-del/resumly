@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { AlertCircle, Loader2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { SplashLoader } from "@/components/splash-screen";
 import { toast } from "sonner";
 
 function LoginForm() {
@@ -119,7 +120,7 @@ function LoginForm() {
 
 export default function LoginPage() {
   return (
-    <Suspense fallback={<div className="min-h-[calc(100vh-64px)] flex items-center justify-center">Loading...</div>}>
+    <Suspense fallback={<SplashLoader />}>
       <LoginForm />
     </Suspense>
   );

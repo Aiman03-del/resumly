@@ -2,8 +2,9 @@
 import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "framer-motion";
-import { AlertCircle, Check, Copy, ExternalLink, Loader2, Share2, X } from "lucide-react";
+import { AlertCircle, Check, Copy, ExternalLink, Share2, X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { SplashLoader } from "@/components/splash-screen";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 const subscribeNoop = () => () => {};
@@ -107,7 +108,7 @@ export function ShareLink({ resumeId }: { resumeId: string }) {
                   <button type="button" onClick={() => setOpen(false)} aria-label="Close" className="text-foreground/50 hover:text-foreground"><X size={18} /></button>
                 </div>
                 <div className="overflow-y-auto p-5 space-y-5">
-                  {!loaded && !error && <div className="py-10 flex items-center justify-center gap-2 text-sm text-foreground/60"><Loader2 size={16} className="animate-spin" />Loading…</div>}
+                  {!loaded && !error && <SplashLoader size="panel" />}
                   {error && <div className="flex items-start gap-2 text-sm text-red-600 bg-red-500/10 border border-red-500/30 rounded-lg px-3 py-2"><AlertCircle size={15} className="shrink-0 mt-0.5" /><p>{error}</p></div>}
                   {loaded && (
                     <>

@@ -8,7 +8,7 @@ import { FontPicker } from "@/components/font-picker";
 import { SectionOrderList } from "@/components/section-order-list";
 import { SectionDndProvider } from "@/components/sortable-section";
 import { ResumeRenderer } from "@/components/templates";
-import { Skeleton } from "@/components/ui/skeleton";
+import { SplashLoader } from "@/components/splash-screen";
 import type { ResumeData } from "@/types/resume";
 import { normalizeOrder, type SectionKey } from "@/lib/section-order";
 import { isHexColor, themeStyle } from "@/lib/theme";
@@ -104,18 +104,7 @@ export default function TemplateSelectPage() {
     router.push(`/preview/${resumeId}`);
   }
 
-  if (loading || !resumeData) {
-    return (
-      <div className="max-w-6xl mx-auto py-10 px-6">
-        <Skeleton className="h-7 w-48 mb-2" />
-        <Skeleton className="h-4 w-64 mb-8" />
-        <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-8">
-          <Skeleton className="h-96 rounded-xl" />
-          <Skeleton className="h-96 rounded-xl" />
-        </div>
-      </div>
-    );
-  }
+  if (loading || !resumeData) return <SplashLoader />;
 
   const previewData: ResumeData = {
     ...resumeData,

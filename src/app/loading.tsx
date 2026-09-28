@@ -1,5 +1,5 @@
 import { SplashLoader } from "@/components/splash-screen";
 
-export default function DashboardLoading() {
+export default function Loading() {
   return <SplashLoader />;
 }

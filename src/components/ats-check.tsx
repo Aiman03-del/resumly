@@ -2,9 +2,10 @@
 import { useCallback, useEffect, useState, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "framer-motion";
-import { AlertCircle, CheckCircle2, Loader2, RefreshCw, ScanEye, X } from "lucide-react";
+import { AlertCircle, CheckCircle2, RefreshCw, ScanEye, X } from "lucide-react";
 import type { ResumeData } from "@/types/resume";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { SplashLoader } from "@/components/splash-screen";
 
 type Priority = "high" | "medium" | "low";
 interface AtsResult {
@@ -86,7 +87,7 @@ export function AtsCheck({ data }: { data: ResumeData }) {
               <motion.div initial={{ opacity: 0, scale: 0.96, y: 10 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.96, y: 10 }} transition={{ duration: 0.2 }} onClick={(event) => event.stopPropagation()} role="dialog" aria-modal="true" aria-label="ATS check" className="bg-background rounded-2xl max-w-xl w-full max-h-[85vh] overflow-hidden flex flex-col">
                 <div className="flex items-center justify-between px-5 py-4 border-b border-border shrink-0"><span className="flex items-center gap-2 font-medium"><ScanEye size={16} className="text-accent" /> ATS check</span><button type="button" onClick={() => setOpen(false)} aria-label="Close" className="text-foreground/50 hover:text-foreground"><X size={18} /></button></div>
                 <div className="overflow-y-auto p-5 space-y-6">
-                  {loading && <div className="py-16 flex flex-col items-center justify-center gap-3 text-sm text-foreground/60"><Loader2 size={22} className="animate-spin text-accent" />Reading your resume…</div>}
+                  {loading && <SplashLoader size="panel" label="Reading your resume…" />}
                   {!loading && error && <div className="py-12 flex flex-col items-center text-center gap-3"><AlertCircle size={22} className="text-red-500" /><p className="text-sm text-foreground/70 max-w-sm">{error}</p><button type="button" onClick={() => void run()} className="px-4 py-1.5 rounded-full bg-primary text-primary-fg text-xs font-medium hover:opacity-90 transition-opacity">Try again</button></div>}
                   {!loading && !error && result && overall && (
                     <>

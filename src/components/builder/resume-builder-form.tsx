@@ -14,7 +14,7 @@ import { AdditionalSectionStep } from "@/components/form-steps/additional-sectio
 import { SummaryStep } from "@/components/form-steps/summary-step";
 import { Loader2, Check, ChevronLeft, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
-import { Skeleton } from "@/components/ui/skeleton";
+import { SplashLoader } from "@/components/splash-screen";
 import { ResumeData } from "@/types/resume";
 
 type ResumeFormData = Partial<Omit<ResumeData, "personalInfo">> & {
@@ -49,6 +49,16 @@ const stepLabels: Record<(typeof steps)[number], string> = {
   courses: "Courses / Training",
   summary: "Summary",
 };
+  const skippableSteps: (typeof steps)[number][] = [
+    "experience",
+    "education",
+    "certifications",
+    "languages",
+    "achievements",
+    "awards",
+    "publications",
+    "courses",
+  ];
 
 export function ResumeBuilderForm({ initialResumeId }: { initialResumeId?: string }) {
   const router = useRouter();
@@ -209,26 +219,7 @@ export function ResumeBuilderForm({ initialResumeId }: { initialResumeId?: strin
     if (savedStatusTimeout.current) clearTimeout(savedStatusTimeout.current);
   }, []);
 
-  if (loading) {
-    return (
-      <div className="max-w-2xl mx-auto py-10 px-6">
-        <div className="flex gap-2 mb-8">
-          {Array.from({ length: steps.length }, (_, index) => (
-            <Skeleton key={index} className="h-1.5 flex-1 rounded-full" />
-          ))}
-        </div>
-        <div className="space-y-4">
-          <Skeleton className="h-6 w-48" />
-          <Skeleton className="h-10 w-full" />
-          <div className="grid grid-cols-2 gap-4">
-            <Skeleton className="h-10 w-full" />
-            <Skeleton className="h-10 w-full" />
-          </div>
-          <Skeleton className="h-10 w-full" />
-        </div>
-      </div>
-    );
-  }
+  if (loading) return <SplashLoader />;
 
   return (
     <div className="w-full max-w-5xl mx-auto py-6 sm:py-10 px-4 sm:px-6">
@@ -257,7 +248,7 @@ export function ResumeBuilderForm({ initialResumeId }: { initialResumeId?: strin
             </button>
           ))}
         </div>
-        {["experience", "education"].includes(currentStep) && (
+        { skippableSteps.includes(currentStep) && (
           <button
             type="button"
             onClick={() => goToStep(Math.min(steps.length - 1, stepIndex + 1))}

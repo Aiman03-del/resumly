@@ -2,18 +2,20 @@
 import { useEffect, useId, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 
-const STORAGE_KEY = "resumly-splash-seen";
-const SPLASH_MS = 2900;
+// The first-load splash stays for at least this long (measured from the start of the
+// page load) so the logo animation can finish, and never longer than SPLASH_MAX_MS.
+const SPLASH_MIN_MS = 2600;
+const SPLASH_MAX_MS = 10000;
 
 const box = { transformBox: "fill-box" as const };
 
-function AnimatedLogo() {
+function AnimatedLogo({ className = "w-32 sm:w-40 h-auto overflow-visible" }: { className?: string }) {
   const maskId = useId().replace(/:/g, "");
 
   return (
     <svg
       viewBox="143 115 214 270"
-      className="w-32 sm:w-40 h-auto overflow-visible"
+      className={className}
       role="img"
       aria-label="Resumly logo"
     >
@@ -104,34 +106,90 @@ function AnimatedLogo() {
   );
 }
 
+function Wordmark({ className, delay }: { className: string; delay: number }) {
+  return (
+    <motion.span
+      className={className}
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5, delay, ease: "easeOut" }}
+    >
+      Resumly
+    </motion.span>
+  );
+}
+
+/**
+ * The loading indicator used everywhere in the app (pages, panels, modals).
+ * - "page":  fills the area under the navbar (route / page loading)
+ * - "panel": compact, for modals and sections
+ * - fullscreen: covers the whole viewport
+ */
+export function SplashLoader({
+  size = "page",
+  label,
+  fullscreen = false,
+}: {
+  size?: "page" | "panel";
+  label?: string;
+  fullscreen?: boolean;
+}) {
+  const panel = size === "panel" && !fullscreen;
+  const wrapper = fullscreen
+    ? "fixed inset-0 z-100 bg-background"
+    : panel
+      ? "py-10"
+      : "min-h-[calc(100vh-64px)]";
+
+  return (
+    <div
+      role="status"
+      aria-live="polite"
+      aria-label={label ?? "Loading"}
+      className={`${wrapper} flex flex-col items-center justify-center gap-4`}
+    >
+      <AnimatedLogo className={panel ? "w-16 h-auto overflow-visible" : "w-32 sm:w-40 h-auto overflow-visible"} />
+      <Wordmark className={panel ? "text-base font-bold tracking-tight" : "text-2xl font-bold tracking-tight"} delay={2.0} />
+      {label && <p className="text-sm text-foreground/60">{label}</p>}
+    </div>
+  );
+}
+
+/**
+ * Root splash: shown on EVERY full page load / reload and removed only once the page
+ * (document, images, fonts) has finished loading.
+ */
 export function SplashScreen() {
   const reduceMotion = useReducedMotion();
   const [visible, setVisible] = useState(true);
 
   useEffect(() => {
-    let seen = false;
-    try {
-      seen = sessionStorage.getItem(STORAGE_KEY) === "1";
-    } catch {}
+    document.body.style.overflow = "hidden";
 
-    // Play once per browser session, and never for people who prefer reduced motion.
-    const skip = seen || !!reduceMotion;
-    if (!skip) document.body.style.overflow = "hidden";
+    const minMs = reduceMotion ? 0 : SPLASH_MIN_MS;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    let cancelled = false;
 
-    const timer = setTimeout(
-      () => {
-        if (!skip) {
-          try {
-            sessionStorage.setItem(STORAGE_KEY, "1");
-          } catch {}
-        }
-        setVisible(false);
-      },
-      skip ? 0 : SPLASH_MS
-    );
+    const pageLoaded = new Promise<void>((resolve) => {
+      if (document.readyState === "complete") resolve();
+      else window.addEventListener("load", () => resolve(), { once: true });
+    });
+    const fontsReady: Promise<unknown> = document.fonts?.ready ?? Promise.resolve();
+
+    Promise.all([pageLoaded, fontsReady]).then(() => {
+      if (cancelled) return;
+      // performance.now() = ms since navigation start, so real load time counts
+      // towards the minimum and fast loads are not delayed twice.
+      timer = setTimeout(() => setVisible(false), Math.max(0, minMs - performance.now()));
+    });
+
+    // Safety net: never trap the user behind the splash.
+    const fallback = setTimeout(() => setVisible(false), SPLASH_MAX_MS);
 
     return () => {
+      cancelled = true;
       clearTimeout(timer);
+      clearTimeout(fallback);
       document.body.style.overflow = "";
     };
   }, [reduceMotion]);
@@ -146,19 +204,13 @@ export function SplashScreen() {
       {visible && (
         <motion.div
           key="splash"
-          aria-hidden="true"
+          role="status"
+          aria-label="Loading Resumly"
           className="fixed inset-0 z-100 flex flex-col items-center justify-center gap-5 bg-background"
           exit={{ opacity: 0, scale: 1.04, transition: { duration: 0.5, ease: "easeInOut" } }}
         >
           <AnimatedLogo />
-          <motion.span
-            className="text-2xl font-bold tracking-tight text-foreground"
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 2.0, ease: "easeOut" }}
-          >
-            Resumly
-          </motion.span>
+          <Wordmark className="text-2xl font-bold tracking-tight text-foreground" delay={2.0} />
         </motion.div>
       )}
     </AnimatePresence>

@@ -18,7 +18,7 @@ import { DownloadMenu } from "@/components/download-menu";
 import { AtsCheck } from "@/components/ats-check";
 import { CoverLetter } from "@/components/cover-letter";
 import { ShareLink } from "@/components/share-link";
-import { Skeleton } from "@/components/ui/skeleton";
+import { SplashLoader } from "@/components/splash-screen";
 
 export default function PreviewPage() {
   const { resumeId } = useParams<{ resumeId: string }>();
@@ -59,33 +59,7 @@ export default function PreviewPage() {
     load();
   }, [resumeId, supabase]);
 
-  if (loading) {
-    return (
-      <div className="max-w-4xl mx-auto py-8 px-6 space-y-4">
-        <div className="flex justify-end gap-2">
-          <Skeleton className="h-10 w-10 rounded-lg" />
-          <Skeleton className="h-10 w-10 rounded-lg" />
-          <Skeleton className="h-10 w-10 rounded-lg" />
-        </div>
-        <div className="rounded-lg border border-border p-10 space-y-6">
-          <div className="text-center space-y-2">
-            <Skeleton className="h-7 w-56 mx-auto" />
-            <Skeleton className="h-3 w-72 mx-auto" />
-          </div>
-          <div className="space-y-2">
-            <Skeleton className="h-3 w-24" />
-            <Skeleton className="h-3 w-full" />
-            <Skeleton className="h-3 w-5/6" />
-          </div>
-          <div className="space-y-2">
-            <Skeleton className="h-3 w-32" />
-            <Skeleton className="h-3 w-full" />
-            <Skeleton className="h-3 w-4/6" />
-          </div>
-        </div>
-      </div>
-    );
-  }
+  if (loading) return <SplashLoader />;
 
   if (!data) {
     return (

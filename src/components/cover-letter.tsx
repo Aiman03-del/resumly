@@ -5,6 +5,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { AlertCircle, ArrowLeft, Check, Copy, FileText, Loader2, RefreshCw, Sparkles, X } from "lucide-react";
 import type { ResumeData } from "@/types/resume";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { SplashLoader } from "@/components/splash-screen";
 
 const TONES = [
   { value: "professional", label: "Professional" },
@@ -139,7 +140,7 @@ export function CoverLetter({ data }: { data: ResumeData }) {
                     <div className="space-y-3">
                       <div className="relative">
                         <textarea value={letter} onChange={(event) => setLetter(event.target.value)} readOnly={loading} rows={16} className="w-full px-4 py-3 rounded-lg border border-border bg-background text-sm leading-relaxed" />
-                        {loading && <div className="absolute inset-0 flex items-center justify-center gap-2 rounded-lg bg-background/80 backdrop-blur-[1px] text-sm text-foreground/70"><Loader2 size={16} className="animate-spin" />Writing your letter…</div>}
+                        {loading && <div className="absolute inset-0 rounded-lg bg-background/80 backdrop-blur-[1px]"><SplashLoader size="panel" label="Writing your letter…" /></div>}
                       </div>
                       <p className="text-[11px] text-foreground/40">{wordCount} words. You can edit the text before copying. It is not saved, so copy it before you close this page.</p>
                       {error && <ErrorNote message={error} />}
