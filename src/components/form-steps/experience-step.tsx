@@ -4,7 +4,7 @@ import { useFieldArray, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { experienceSchema } from "@/types/resume";
-import { Plus, Trash2 } from "lucide-react";
+import { Loader2, Plus, Trash2 } from "lucide-react";
 import { PolishButton } from "@/components/polish-button";
 
 const formSchema = z.object({ items: z.array(experienceSchema) });
@@ -25,6 +25,7 @@ export function ExperienceStep({
 
   const { fields, append, remove } = useFieldArray({ control, name: "items" });
   const [liveItems, setLiveItems] = useState<ExperienceItem[]>(defaultValues?.length ? defaultValues : []);
+  const [polishingIndex, setPolishingIndex] = useState<number | null>(null);
 
   useEffect(() => {
     const subscription = watch((value) => {
@@ -55,7 +56,8 @@ export function ExperienceStep({
           <button
             type="button"
             onClick={() => handleRemove(index)}
-            className="absolute top-3 right-3 text-foreground/40 hover:text-red-500"
+            disabled={polishingIndex !== null}
+            className="absolute top-3 right-3 text-foreground/40 hover:text-red-500 disabled:opacity-30 disabled:pointer-events-none"
           >
             <Trash2 size={16} />
           </button>
@@ -107,15 +109,25 @@ export function ExperienceStep({
                   content={row?.description}
                   context={{ role: row?.role, company: row?.company }}
                   onPolished={(text) => setValue(`items.${index}.description`, text)}
+                  onLoadingChange={(loading) => setPolishingIndex(loading ? index : null)}
                 />
               )}
             </div>
-            <textarea
-              {...register(`items.${index}.description`)}
-              rows={3}
-              className="w-full mt-1 px-3 py-2 rounded-lg border border-border bg-background"
-              placeholder="What did you do and achieve in this role?"
-            />
+            <div className="relative mt-1">
+              <textarea
+                {...register(`items.${index}.description`)}
+                rows={3}
+                readOnly={polishingIndex === index}
+                className="w-full px-3 py-2 rounded-lg border border-border bg-background"
+                placeholder="What did you do and achieve in this role?"
+              />
+              {polishingIndex === index && (
+                <div className="absolute inset-0 flex items-center justify-center gap-2 rounded-lg bg-background/80 backdrop-blur-[1px] text-sm text-foreground/70">
+                  <Loader2 size={16} className="animate-spin" />
+                  Polishing your description…
+                </div>
+              )}
+            </div>
           </div>
         </div>
         );

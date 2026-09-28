@@ -60,6 +60,7 @@ export function ProjectsStep({
   const { fields, append, remove } = useFieldArray({ control, name: "items" });
   const [liveItems, setLiveItems] = useState<ProjectItem[]>(initialItems);
   const [generatingIndex, setGeneratingIndex] = useState<number | null>(null);
+  const [polishingIndex, setPolishingIndex] = useState<number | null>(null);
 
   useEffect(() => {
     const subscription = watch((value) => {
@@ -141,13 +142,15 @@ export function ProjectsStep({
         const hasDescription = (row?.description ?? "").trim().length > 0;
         const links = row?.links?.length ? row.links : [""];
         const linksError = errors.items?.[index]?.links;
+        const busy = generatingIndex === index || polishingIndex === index;
 
         return (
           <div key={field.id} className="p-4 rounded-xl border border-border space-y-3 relative">
             <button
               type="button"
               onClick={() => handleRemove(index)}
-              className="absolute top-3 right-3 text-foreground/40 hover:text-red-500"
+              disabled={generatingIndex !== null || polishingIndex !== null}
+              className="absolute top-3 right-3 text-foreground/40 hover:text-red-500 disabled:opacity-30 disabled:pointer-events-none"
               aria-label={`Remove project ${row?.name || index + 1}`}
             >
               <Trash2 size={16} />
@@ -236,15 +239,27 @@ export function ProjectsStep({
                     section="project-description"
                     content={row?.description}
                     onPolished={(text) => setValue(`items.${index}.description`, text)}
+                    onLoadingChange={(loading) => setPolishingIndex(loading ? index : null)}
                   />
                 )}
               </div>
-              <textarea
-                {...register(`items.${index}.description`)}
-                rows={2}
-                className="w-full px-3 py-2 rounded-lg border border-border bg-background"
-                placeholder="What does this project do?"
-              />
+              <div className="relative">
+                <textarea
+                  {...register(`items.${index}.description`)}
+                  rows={2}
+                  readOnly={busy}
+                  className="w-full px-3 py-2 rounded-lg border border-border bg-background"
+                  placeholder="What does this project do?"
+                />
+                {busy && (
+                  <div className="absolute inset-0 flex items-center justify-center gap-2 rounded-lg bg-background/80 backdrop-blur-[1px] text-sm text-foreground/70">
+                    <Loader2 size={16} className="animate-spin" />
+                    {generatingIndex === index
+                      ? "Writing a description from your project…"
+                      : "Polishing your description…"}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         );

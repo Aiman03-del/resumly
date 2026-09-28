@@ -14,6 +14,8 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { DownloadMenu } from "@/components/download-menu";
+import { AtsCheck } from "@/components/ats-check";
+import { CoverLetter } from "@/components/cover-letter";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export default function PreviewPage() {
@@ -98,6 +100,8 @@ export default function PreviewPage() {
           </Link>
 
           <div className="flex items-center gap-1.5 sm:gap-2">
+            <AtsCheck data={data} />
+            <CoverLetter data={data} />
             <Tooltip>
               <TooltipTrigger
                 render={
