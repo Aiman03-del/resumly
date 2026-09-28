@@ -17,6 +17,9 @@ import { toast } from "sonner";
 
 type Format = "pdf" | "png" | "jpg";
 
+// Same render scale for PNG, JPG and PDF so all three come out the same size.
+const EXPORT_SCALE = 2;
+
 export function DownloadMenu({
   targetRef,
   fileName,
@@ -34,7 +37,7 @@ export function DownloadMenu({
       const html2canvas = (await import("html2canvas-pro")).default;
       const element = targetRef.current;
       const canvas = await html2canvas(element, {
-        scale: 2,
+        scale: EXPORT_SCALE,
         backgroundColor: "#ffffff",
         useCORS: true,
         x: 0,
@@ -58,26 +61,21 @@ export function DownloadMenu({
       if (format === "pdf") {
         const { jsPDF } = await import("jspdf");
         const imgData = canvas.toDataURL("image/png");
-        const pdf = new jsPDF({ unit: "px", format: "a4" });
-        const pageWidth = pdf.internal.pageSize.getWidth();
-        const pageHeight = pdf.internal.pageSize.getHeight();
 
-        const margin = 24;
-        const usableWidth = pageWidth - margin * 2;
-        const imgHeight = (canvas.height * usableWidth) / canvas.width;
+        // PDF page = exactly the same size as the PNG/JPG (no margins,
+        // no A4 slicing), so it looks identical on mobile and desktop.
+        const pageWidth = canvas.width / EXPORT_SCALE;
+        const pageHeight = canvas.height / EXPORT_SCALE;
 
-        let heightLeft = imgHeight;
-        let position = margin;
+        const pdf = new jsPDF({
+          unit: "px",
+          format: [pageWidth, pageHeight],
+          orientation: pageWidth > pageHeight ? "landscape" : "portrait",
+          compress: true,
+          hotfixes: ["px_scaling"],
+        });
 
-        pdf.addImage(imgData, "PNG", margin, position, usableWidth, imgHeight);
-        heightLeft -= pageHeight - margin * 2;
-
-        while (heightLeft > 0) {
-          position = heightLeft - imgHeight + margin;
-          pdf.addPage();
-          pdf.addImage(imgData, "PNG", margin, position, usableWidth, imgHeight);
-          heightLeft -= pageHeight - margin * 2;
-        }
+        pdf.addImage(imgData, "PNG", 0, 0, pageWidth, pageHeight, undefined, "FAST");
 
         pdf.save(`${fileName}.pdf`);
       } else {
