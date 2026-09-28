@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Loader2, Trash2 } from "lucide-react";
 import { ResumeRenderer } from "@/components/templates";
+import { ScaledPreview } from "@/components/scaled-preview";
 import { ResumeData } from "@/types/resume";
 import { createClient } from "@/lib/supabase/client";
 import { toast } from "sonner";
@@ -53,8 +54,8 @@ export function ResumeCard({
   }
 
   return (
-    <div className="group relative p-5 rounded-xl border border-border hover:border-primary transition-colors">
-      <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity">
+    <div className="group relative min-w-0 p-4 sm:p-5 rounded-xl border border-border hover:border-primary transition-colors">
+      <div className="absolute top-3 right-3 z-10 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100 transition-opacity">
         <AlertDialog>
           <AlertDialogTrigger
             render={
@@ -89,12 +90,12 @@ export function ResumeCard({
       </div>
 
       <Link href={`/preview/${id}`} className="block focus-visible:outline-2 focus-visible:outline-primary">
-        <div className="h-40 overflow-hidden rounded-lg border border-border bg-neutral-100 mb-3">
-          <div className="w-[400%] origin-top-left scale-[0.25] pointer-events-none">
+        <div className="h-44 overflow-hidden rounded-lg border border-border bg-neutral-100 mb-3 pointer-events-none">
+          <ScaledPreview>
             <ResumeRenderer templateId={templateId} data={data} accentColor={accentColor} />
-          </div>
+          </ScaledPreview>
         </div>
-        <p className="font-medium pr-16">{displayName}</p>
+        <p className="font-medium truncate pr-10">{displayName}</p>
         <p className="text-xs text-foreground/50 mt-1">Updated {updatedAt}</p>
       </Link>
     </div>
