@@ -125,3 +125,15 @@ export function draftChangesAgainst(updates: DraftUpdates, row: Record<string, u
   }
   return changed;
 }
+
+/**
+ * After the server confirms a save, drop those columns from the unsaved set,
+ * unless the value changed again while the request was in flight.
+ */
+export function dropConfirmedUpdates(unsaved: DraftUpdates, confirmed: DraftUpdates): DraftUpdates {
+  const remaining = { ...unsaved };
+  for (const [column, value] of Object.entries(confirmed)) {
+    if (remaining[column] === value) delete remaining[column];
+  }
+  return remaining;
+}

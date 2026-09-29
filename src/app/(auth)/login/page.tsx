@@ -5,7 +5,8 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { AlertCircle, Loader2 } from "lucide-react";
-import { createClient } from "@/lib/supabase/client";
+import { GENERIC_LOGIN_ERROR } from "@/lib/auth-errors";
+import { safeRedirect } from "@/lib/safe-redirect";
 import { SplashLoader } from "@/components/splash-screen";
 import { toast } from "sonner";
 
@@ -13,10 +14,7 @@ function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const confirmationError = searchParams.get("error");
-  const requestedRedirect = searchParams.get("redirectTo") || "/dashboard";
-  const redirectTo = requestedRedirect.startsWith("/") && !requestedRedirect.startsWith("//")
-    ? requestedRedirect
-    : "/dashboard";
+  const redirectTo = safeRedirect(searchParams.get("redirectTo"));
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -35,17 +33,20 @@ function LoginForm() {
     setLoading(true);
     setError("");
 
-    const supabase = createClient();
-    const { error: loginError } = await supabase.auth.signInWithPassword({ email, password });
-
-    if (loginError) {
-      if (loginError.message.includes("Invalid login credentials")) {
-        setError("Incorrect email or password. Please try again.");
-      } else if (loginError.message.includes("Email not confirmed")) {
-        setError("Please confirm your email before logging in. Check your inbox.");
-      } else {
-        setError(loginError.message);
+    try {
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+      if (!response.ok) {
+        const body = (await response.json().catch(() => null)) as { error?: string } | null;
+        setError(body?.error ?? GENERIC_LOGIN_ERROR);
+        setLoading(false);
+        return;
       }
+    } catch {
+      setError("We couldn't reach the server. Check your connection and try again.");
       setLoading(false);
       return;
     }

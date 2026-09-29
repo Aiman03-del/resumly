@@ -50,7 +50,8 @@ export function ShareLink({ resumeId }: { resumeId: string }) {
       .single();
 
     if (loadError) {
-      setError(`Could not load sharing settings: ${loadError.message}`);
+      console.error("[share] load failed", { code: loadError.code });
+      setError("Could not load sharing settings. Please try again.");
       return;
     }
     setIsPublic(Boolean(data.is_public) && Boolean(data.share_id));
@@ -70,7 +71,8 @@ export function ShareLink({ resumeId }: { resumeId: string }) {
 
     setSaving(false);
     if (updateError) {
-      setError(updateError.message);
+      console.error("[share] update failed", { code: updateError.code });
+      setError("Could not update sharing. Please try again.");
       return;
     }
     setIsPublic(enable);
@@ -101,7 +103,7 @@ export function ShareLink({ resumeId }: { resumeId: string }) {
       {mounted && createPortal(
         <AnimatePresence>
           {open && (
-            <motion.div key="share-overlay" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setOpen(false)} className="no-print fixed inset-0 z-[60] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 sm:p-8">
+            <motion.div key="share-overlay" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setOpen(false)} className="no-print fixed inset-0 z-60 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 sm:p-8">
               <motion.div initial={{ opacity: 0, scale: 0.96, y: 10 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.96, y: 10 }} transition={{ duration: 0.2 }} onClick={(event) => event.stopPropagation()} role="dialog" aria-modal="true" aria-label="Share resume" className="bg-background rounded-2xl max-w-lg w-full max-h-[85vh] overflow-hidden flex flex-col">
                 <div className="flex items-center justify-between px-5 py-4 border-b border-border shrink-0">
                   <span className="flex items-center gap-2 font-medium"><Share2 size={16} className="text-primary" /> Share your resume</span>

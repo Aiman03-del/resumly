@@ -25,6 +25,7 @@ import {
   FIELD_COLUMNS,
   clearDraft,
   draftChangesAgainst,
+  dropConfirmedUpdates,
   emptyColumnValue,
   fieldForColumn,
   loadDraft,
@@ -276,12 +277,8 @@ export function ResumeBuilderForm({ initialResumeId }: { initialResumeId?: strin
 
     // Confirmed by the server: drop these changes from the local draft
     // (unless the value changed again while the request was in flight).
-    const remaining = { ...unsavedRef.current };
-    for (const [column, value] of Object.entries(updates)) {
-      if (remaining[column] === value) delete remaining[column];
-    }
-    unsavedRef.current = remaining;
-    saveDraft(id, remaining);
+    unsavedRef.current = dropConfirmedUpdates(unsavedRef.current, updates);
+    saveDraft(id, unsavedRef.current);
 
     setSaveState("saved");
     savedStatusTimeout.current = setTimeout(() => {
