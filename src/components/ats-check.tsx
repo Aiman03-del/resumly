@@ -20,13 +20,13 @@ const priorityStyle: Record<Priority, string> = {
   medium: "bg-amber-500/10 text-amber-600",
   low: "bg-foreground/5 text-foreground/60",
 };
-function tone(percent: number) {
+export function tone(percent: number) {
   if (percent >= 80) return { text: "text-green-600", bar: "bg-green-500", label: "Strong" };
   if (percent >= 60) return { text: "text-amber-500", bar: "bg-amber-500", label: "Good start" };
   return { text: "text-red-500", bar: "bg-red-500", label: "Needs work" };
 }
 const subscribeNoop = () => () => {};
-function ScoreRing({ score }: { score: number }) {
+export function ScoreRing({ score }: { score: number }) {
   const radius = 52;
   const circumference = 2 * Math.PI * radius;
   return (

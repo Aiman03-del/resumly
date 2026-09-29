@@ -15,7 +15,11 @@ import { SummaryStep } from "@/components/form-steps/summary-step";
 import { Loader2, Check, ChevronLeft, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
 import { SplashLoader } from "@/components/splash-screen";
-import { ResumeData } from "@/types/resume";
+import type { ResumeData } from "@/types/resume";
+import { DesktopPreview, MobilePreview } from "@/components/builder/live-preview";
+import { normalizeOrder, type SectionKey } from "@/lib/section-order";
+import { isHexColor } from "@/lib/theme";
+import { DEFAULT_RESUME_FONT } from "@/lib/font";
 
 type ResumeFormData = Partial<Omit<ResumeData, "personalInfo">> & {
   personalInfo?: Partial<ResumeData["personalInfo"]>;
@@ -72,6 +76,16 @@ export function ResumeBuilderForm({ initialResumeId }: { initialResumeId?: strin
   const [saveState, setSaveState] = useState<"idle" | "saving" | "saved">("idle");
   const [personalInfoValid, setPersonalInfoValid] = useState(false);
   const [navigating, setNavigating] = useState(false);
+  const [appearance, setAppearance] = useState<{
+    templateId: string;
+    themeColor?: string;
+    fontFamily: string;
+    sectionOrder: SectionKey[];
+  }>({
+    templateId: "modern",
+    fontFamily: DEFAULT_RESUME_FONT,
+    sectionOrder: normalizeOrder(),
+  });
   const skillsValid = (resumeData.skills?.length ?? 0) > 0;
   const projectsValid = (resumeData.projects?.length ?? 0) > 0;
   const summaryValid = (resumeData.summary?.trim?.().length ?? 0) > 0;
@@ -81,6 +95,32 @@ export function ResumeBuilderForm({ initialResumeId }: { initialResumeId?: strin
   const pendingUpdates = useRef<Record<string, unknown>>({});
 
   const currentStep = steps[stepIndex];
+
+  const previewData = useMemo<ResumeData>(
+    () => ({
+      personalInfo: {
+        ...resumeData.personalInfo,
+        fullName: resumeData.personalInfo?.fullName || "Your Name",
+        email: resumeData.personalInfo?.email ?? "",
+        phone: resumeData.personalInfo?.phone ?? "",
+      },
+      summary: resumeData.summary ?? "",
+      experience: resumeData.experience ?? [],
+      education: resumeData.education ?? [],
+      skills: resumeData.skills ?? [],
+      projects: resumeData.projects ?? [],
+      certifications: resumeData.certifications ?? [],
+      languages: resumeData.languages ?? [],
+      achievements: resumeData.achievements ?? [],
+      awards: resumeData.awards ?? [],
+      publications: resumeData.publications ?? [],
+      courses: resumeData.courses ?? [],
+      sectionOrder: appearance.sectionOrder,
+      themeColor: appearance.themeColor,
+      fontFamily: appearance.fontFamily,
+    }),
+    [resumeData, appearance],
+  );
 
   useEffect(() => {
     if (!initialResumeId) return;
@@ -105,6 +145,16 @@ export function ResumeBuilderForm({ initialResumeId }: { initialResumeId?: strin
           awards: data.awards ?? [],
           publications: data.publications ?? [],
           courses: data.courses ?? [],
+        });
+        setAppearance({
+          templateId: data.template_id ?? "modern",
+          themeColor: isHexColor(data.theme_color)
+            ? data.theme_color
+            : isHexColor(data.accent_color)
+              ? data.accent_color
+              : undefined,
+          fontFamily: data.personal_info?.fontFamily ?? DEFAULT_RESUME_FONT,
+          sectionOrder: normalizeOrder(data.section_order),
         });
       }
       setLoading(false);
@@ -222,7 +272,7 @@ export function ResumeBuilderForm({ initialResumeId }: { initialResumeId?: strin
   if (loading) return <SplashLoader />;
 
   return (
-    <div className="w-full max-w-5xl mx-auto py-6 sm:py-10 px-4 sm:px-6">
+    <div className="w-full max-w-7xl mx-auto py-6 sm:py-10 px-4 sm:px-6">
       <div className="w-full max-w-sm mx-auto flex items-center gap-2 mb-6 sm:mb-8">
         <div className="flex gap-1 flex-1">
           {steps.map((step, index) => (
@@ -299,7 +349,8 @@ export function ResumeBuilderForm({ initialResumeId }: { initialResumeId?: strin
         </p>
       )}
 
-      <div className="flex items-center gap-2 sm:gap-6 lg:gap-10">
+      <div className="grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_420px] xl:grid-cols-[minmax(0,1fr)_480px]">
+      <div className="flex items-center gap-2 sm:gap-6 lg:gap-6">
         <button
           type="button"
           onClick={() => goToStep(Math.max(0, stepIndex - 1))}
@@ -435,6 +486,11 @@ export function ResumeBuilderForm({ initialResumeId }: { initialResumeId?: strin
           </button>
         )}
       </div>
+
+      <DesktopPreview data={previewData} templateId={appearance.templateId} />
+      </div>
+
+      <MobilePreview data={previewData} templateId={appearance.templateId} />
     </div>
   );
 }

@@ -4,6 +4,7 @@ import { Plus, FileText } from "lucide-react";
 import { ResumeCard } from "@/components/resume-card";
 import { normalizeOrder } from "@/lib/section-order";
 import { sanitizeResumeUrls, type ResumeData } from "@/types/resume";
+import { versionLabel } from "@/lib/resume-version";
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -28,11 +29,15 @@ export default async function DashboardPage() {
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
-          {resumes.map((r) => (
+          {resumes.map((r) => {
+            const fullName = r.personal_info?.fullName?.trim() || "";
+            const label = versionLabel(r.title, fullName);
+            return (
             <ResumeCard
               key={r.id}
               id={r.id}
-              displayName={r.personal_info?.fullName?.trim() || "Untitled Resume"}
+              displayName={label}
+              subtitle={fullName && fullName !== label ? fullName : undefined}
               updatedAt={new Date(r.updated_at).toLocaleDateString()}
               templateId={r.template_id ?? "modern"}
               accentColor={r.accent_color ?? undefined}
@@ -62,7 +67,8 @@ export default async function DashboardPage() {
                 sectionOrder: normalizeOrder(r.section_order),
               } as ResumeData)}
             />
-          ))}
+            );
+          })}
         </div>
       )}
     </div>

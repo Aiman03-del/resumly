@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/tooltip";
 import { DownloadMenu } from "@/components/download-menu";
 import { AtsCheck } from "@/components/ats-check";
+import { JobMatch } from "@/components/job-match";
 import { CoverLetter } from "@/components/cover-letter";
 import { ShareLink } from "@/components/share-link";
 import { SplashLoader } from "@/components/splash-screen";
@@ -85,6 +86,7 @@ export default function PreviewPage() {
 
           <div className="flex items-center gap-1.5 sm:gap-2">
             <AtsCheck data={data} />
+            <JobMatch data={data} />
             <CoverLetter data={data} />
             <ShareLink resumeId={resumeId} />
             <Tooltip>
