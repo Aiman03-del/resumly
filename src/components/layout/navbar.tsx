@@ -16,7 +16,7 @@ const NAV_LINKS = [
 ];
 
 export function Navbar() {
-  const supabase = createClient();
+  const [supabase] = useState(createClient);
   const router = useRouter();
   const pathname = usePathname();
   const [user, setUser] = useState<User | null>(null);
@@ -24,16 +24,23 @@ export function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
+    const refreshUser = () => supabase.auth.getUser().then(({ data }) => {
       setUser(data.user);
       setLoading(false);
     });
 
+    refreshUser();
+
     const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
+      setLoading(false);
     });
+    window.addEventListener("resumly-auth-changed", refreshUser);
 
-    return () => listener.subscription.unsubscribe();
+    return () => {
+      listener.subscription.unsubscribe();
+      window.removeEventListener("resumly-auth-changed", refreshUser);
+    };
   }, [supabase]);
 
   async function handleLogout() {

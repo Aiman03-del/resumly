@@ -51,6 +51,7 @@ function LoginForm() {
       return;
     }
 
+    window.dispatchEvent(new Event("resumly-auth-changed"));
     router.push(redirectTo);
     router.refresh();
   }
