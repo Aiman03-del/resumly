@@ -164,7 +164,10 @@ export function SplashScreen() {
   const [visible, setVisible] = useState(true);
 
   useEffect(() => {
-    document.body.style.overflow = "hidden";
+    const startTime = performance.now();
+    if (document.body) {
+      document.body.style.overflow = "hidden";
+    }
 
     const minMs = reduceMotion ? 0 : SPLASH_MIN_MS;
     let timer: ReturnType<typeof setTimeout> | undefined;
@@ -178,9 +181,10 @@ export function SplashScreen() {
 
     Promise.all([pageLoaded, fontsReady]).then(() => {
       if (cancelled) return;
-      // performance.now() = ms since navigation start, so real load time counts
-      // towards the minimum and fast loads are not delayed twice.
-      timer = setTimeout(() => setVisible(false), Math.max(0, minMs - performance.now()));
+      const elapsed = performance.now() - startTime;
+      // Use the actual page load elapsed time so the splash still respects the
+      // minimum-duration guarantee without waiting twice on fast loads.
+      timer = setTimeout(() => setVisible(false), Math.max(0, minMs - elapsed));
     });
 
     // Safety net: never trap the user behind the splash.
@@ -190,7 +194,9 @@ export function SplashScreen() {
       cancelled = true;
       clearTimeout(timer);
       clearTimeout(fallback);
-      document.body.style.overflow = "";
+      if (document.body) {
+        document.body.style.overflow = "";
+      }
     };
   }, [reduceMotion]);
 

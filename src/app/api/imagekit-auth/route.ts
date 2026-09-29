@@ -1,10 +1,10 @@
-import { imagekit } from "@/lib/imagekit";
+import { getImageKit } from "@/lib/imagekit";
 import { NextResponse } from "next/server";
 import { apiErrorResponse } from "@/lib/api-error";
 
 export async function GET() {
   try {
-    const authParams = imagekit.getAuthenticationParameters();
+    const authParams = getImageKit().getAuthenticationParameters();
     return NextResponse.json({
       ...authParams,
       publicKey: process.env.IMAGEKIT_PUBLIC_KEY,

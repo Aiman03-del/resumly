@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import {
   Camera,
@@ -10,6 +11,11 @@ import {
   Share2,
   Sparkles,
 } from "lucide-react";
+
+export const metadata: Metadata = {
+  title: "Features",
+  description: "See everything Resumly offers: AI writing help, ATS checks, cover letters, and professional templates.",
+};
 
 const FEATURES = [
   {

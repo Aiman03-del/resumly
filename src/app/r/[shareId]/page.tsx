@@ -8,6 +8,7 @@ import { ScaledPreview } from "@/components/scaled-preview";
 import { normalizeOrder } from "@/lib/section-order";
 import { isHexColor } from "@/lib/theme";
 import type { ResumeData } from "@/types/resume";
+import { sanitizeResumeUrls } from "@/types/resume";
 
 const SHARE_ID_PATTERN = /^[A-Za-z0-9_-]{8,64}$/;
 
@@ -61,7 +62,7 @@ const loadSharedResume = cache(async (shareId: string) => {
   };
 
   return {
-    resume,
+    resume: sanitizeResumeUrls(resume),
     templateId: row.template_id ?? "modern",
     accentColor: isHexColor(row.accent_color) ? row.accent_color : undefined,
   };

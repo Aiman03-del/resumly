@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Plus, FileText } from "lucide-react";
 import { ResumeCard } from "@/components/resume-card";
 import { normalizeOrder } from "@/lib/section-order";
+import { sanitizeResumeUrls, type ResumeData } from "@/types/resume";
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -35,7 +36,7 @@ export default async function DashboardPage() {
               updatedAt={new Date(r.updated_at).toLocaleDateString()}
               templateId={r.template_id ?? "modern"}
               accentColor={r.accent_color ?? undefined}
-              data={{
+              data={sanitizeResumeUrls({
                 personalInfo: {
                   fullName: r.personal_info?.fullName ?? "",
                   email: r.personal_info?.email ?? "",
@@ -59,7 +60,7 @@ export default async function DashboardPage() {
                 courses: r.courses ?? [],
                 themeColor: r.theme_color ?? undefined,
                 sectionOrder: normalizeOrder(r.section_order),
-              }}
+              } as ResumeData)}
             />
           ))}
         </div>

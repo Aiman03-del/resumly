@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/client";
 import { ResumeRenderer } from "@/components/templates";
 import { ScaledPreview } from "@/components/scaled-preview";
 import type { ResumeData } from "@/types/resume";
+import { sanitizeResumeUrls } from "@/types/resume";
 import { normalizeOrder } from "@/lib/section-order";
 import { Printer, Pencil, ArrowLeft } from "lucide-react";
 import {
@@ -34,7 +35,7 @@ export default function PreviewPage() {
     async function load() {
       const { data: resume, error } = await supabase.from("resumes").select("*").eq("id", resumeId).single();
       if (!error && resume) {
-        setData({
+        setData(sanitizeResumeUrls({
           personalInfo: resume.personal_info ?? {},
           summary: typeof resume.summary === "string" ? resume.summary : resume.summary?.text ?? "",
           experience: resume.experience ?? [],
@@ -50,7 +51,7 @@ export default function PreviewPage() {
           themeColor: resume.theme_color ?? undefined,
           sectionOrder: normalizeOrder(resume.section_order),
           fontFamily: resume.personal_info?.fontFamily ?? undefined,
-        });
+        } as ResumeData));
         setTemplateId(resume.template_id ?? "modern");
         setAccentColor(resume.accent_color ?? undefined);
       }

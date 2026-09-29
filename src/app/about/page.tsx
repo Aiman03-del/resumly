@@ -1,5 +1,11 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { ExternalLink } from "lucide-react";
+
+export const metadata: Metadata = {
+  title: "About",
+  description: "Learn about Resumly and why we built an AI-assisted resume builder that keeps you in control.",
+};
 
 const TECH_STACK = [
   "Next.js",

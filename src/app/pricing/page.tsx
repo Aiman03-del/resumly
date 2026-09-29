@@ -1,5 +1,11 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { Check } from "lucide-react";
+
+export const metadata: Metadata = {
+  title: "Pricing",
+  description: "Simple, transparent pricing for Resumly's AI resume builder.",
+};
 
 const INCLUDED = [
   "10 resume templates",

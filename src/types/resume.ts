@@ -140,3 +140,64 @@ export interface ResumeData {
     description?: string;
   }[];
 }
+
+const sanitizeUrl = (value?: string | null) => {
+  if (!value) return undefined;
+
+  const trimmed = value.trim();
+  if (!trimmed) return undefined;
+
+  if (/^(?:[a-z]+:)?\/\//i.test(trimmed) || trimmed.startsWith("/")) {
+    try {
+      const url = new URL(trimmed, "https://example.com");
+      return ["http:", "https:"].includes(url.protocol) ? url.toString() : undefined;
+    } catch {
+      return undefined;
+    }
+  }
+
+  if (/^(?:https?:)?\/\//i.test(trimmed) || /^https?:\/\//i.test(trimmed)) {
+    try {
+      const url = new URL(trimmed);
+      return ["http:", "https:"].includes(url.protocol) ? url.toString() : undefined;
+    } catch {
+      return undefined;
+    }
+  }
+
+  return trimmed;
+};
+
+export function sanitizeResumeUrls<T extends ResumeData | null | undefined>(resume: T): T {
+  if (!resume) return resume;
+
+  return {
+    ...resume,
+    personalInfo: {
+      ...resume.personalInfo,
+      photoUrl: sanitizeUrl(resume.personalInfo.photoUrl),
+    },
+    projects: resume.projects?.map((project) => ({
+      ...project,
+      link: sanitizeUrl(project.link),
+      links: project.links
+        ?.map((link) => sanitizeUrl(link))
+        .filter((link): link is string => Boolean(link)),
+    })) ?? [],
+    certifications:
+      resume.certifications?.map((certification) => ({
+        ...certification,
+        credentialUrl: sanitizeUrl(certification.credentialUrl),
+      })) ?? [],
+    publications:
+      resume.publications?.map((publication) => ({
+        ...publication,
+        url: sanitizeUrl(publication.url),
+      })) ?? [],
+    courses:
+      resume.courses?.map((course) => ({
+        ...course,
+        credentialUrl: sanitizeUrl(course.credentialUrl),
+      })) ?? [],
+  } as T;
+}

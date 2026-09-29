@@ -3,7 +3,10 @@ import { request as httpRequest, type IncomingMessage } from "node:http";
 import { isIP, type LookupFunction } from "node:net";
 import { request as httpsRequest } from "node:https";
 import { NextRequest, NextResponse } from "next/server";
+import { createClient } from "@/lib/supabase/server";
 import { apiErrorResponse, createGroqClient, HttpError, readJson } from "@/lib/api-error";
+import { checkRateLimit } from "@/lib/rate-limit";
+import { enforceDailyQuota } from "@/lib/api-usage";
 
 export const runtime = "nodejs";
 
@@ -159,8 +162,33 @@ function textValue(value: unknown): string {
 
 const maxLinks = 5;
 
+// Burst guard: blocks a single user from hammering the endpoint in a short
+// window (in-memory, per server instance — see rate-limit.ts).
+const BURST_LIMIT = 5;
+const BURST_WINDOW_MS = 60_000;
+
+// Durable per-day cap, backed by Supabase (survives cold starts / multiple instances).
+const DAILY_LIMIT = 30;
+
 export async function POST(req: NextRequest) {
   try {
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) {
+      return NextResponse.json({ error: "Please log in to generate a project description." }, { status: 401 });
+    }
+
+    const burst = checkRateLimit(`project-link:${user.id}`, BURST_LIMIT, BURST_WINDOW_MS);
+    if (!burst.allowed) {
+      return NextResponse.json(
+        { error: "You're sending requests too quickly. Please wait a moment and try again." },
+        { status: 429, headers: { "Retry-After": String(burst.retryAfterSeconds) } },
+      );
+    }
+    await enforceDailyQuota(supabase, "project-link", DAILY_LIMIT);
+
     const body = (await readJson(req)) as { link?: unknown; links?: unknown; name?: unknown };
     const name = textValue(body.name).slice(0, 120);
     const rawLinks = Array.isArray(body.links)
