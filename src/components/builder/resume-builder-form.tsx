@@ -12,7 +12,7 @@ import { CertificationsStep } from "@/components/form-steps/certifications-step"
 import { LanguagesStep } from "@/components/form-steps/languages-step";
 import { AdditionalSectionStep } from "@/components/form-steps/additional-sections-step";
 import { SummaryStep } from "@/components/form-steps/summary-step";
-import { Loader2, Check, ChevronLeft, ChevronRight } from "lucide-react";
+import { Loader2, Check, ChevronLeft, ChevronRight, Redo2, Undo2 } from "lucide-react";
 import { toast } from "sonner";
 import { SplashLoader } from "@/components/splash-screen";
 import type { ResumeData } from "@/types/resume";
@@ -20,6 +20,17 @@ import { DesktopPreview, MobilePreview } from "@/components/builder/live-preview
 import { normalizeOrder, type SectionKey } from "@/lib/section-order";
 import { isHexColor } from "@/lib/theme";
 import { DEFAULT_RESUME_FONT } from "@/lib/font";
+import {
+  FIELD_COLUMNS,
+  clearDraft,
+  draftChangesAgainst,
+  emptyColumnValue,
+  fieldForColumn,
+  loadDraft,
+  saveDraft,
+  type DraftUpdates,
+  type FieldKey,
+} from "@/lib/draft-storage";
 
 type ResumeFormData = Partial<Omit<ResumeData, "personalInfo">> & {
   personalInfo?: Partial<ResumeData["personalInfo"]>;
@@ -73,7 +84,7 @@ export function ResumeBuilderForm({ initialResumeId }: { initialResumeId?: strin
   const [stepIndex, setStepIndex] = useState(0);
   const [resumeData, setResumeData] = useState<ResumeFormData>({});
   const [loading, setLoading] = useState(!!initialResumeId);
-  const [saveState, setSaveState] = useState<"idle" | "saving" | "saved">("idle");
+  const [saveState, setSaveState] = useState<"idle" | "saving" | "saved" | "error">("idle");
   const [personalInfoValid, setPersonalInfoValid] = useState(false);
   const [navigating, setNavigating] = useState(false);
   const [appearance, setAppearance] = useState<{
@@ -93,6 +104,24 @@ export function ResumeBuilderForm({ initialResumeId }: { initialResumeId?: strin
   const saveTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
   const savedStatusTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pendingUpdates = useRef<Record<string, unknown>>({});
+  // Changes the server has not confirmed yet (includes requests still in flight).
+  const unsavedRef = useRef<Record<string, unknown>>({});
+  const flushRef = useRef<() => Promise<boolean>>(async () => true);
+
+  // Undo / redo
+  const resumeDataRef = useRef<ResumeFormData>({});
+  const history = useRef<{
+    past: ResumeFormData[];
+    future: ResumeFormData[];
+    lastKey: string | null;
+    lastAt: number;
+  }>({ past: [], future: [], lastKey: null, lastAt: 0 });
+  const [historyFlags, setHistoryFlags] = useState({ canUndo: false, canRedo: false });
+  const [formVersion, setFormVersion] = useState(0);
+  const shortcutsRef = useRef<{ undo: () => void; redo: () => void }>({ undo: () => {}, redo: () => {} });
+
+  // Draft recovery
+  const [pendingDraft, setPendingDraft] = useState<{ savedAt: number; updates: DraftUpdates } | null>(null);
 
   const currentStep = steps[stepIndex];
 
@@ -132,7 +161,7 @@ export function ResumeBuilderForm({ initialResumeId }: { initialResumeId?: strin
         .eq("id", initialResumeId)
         .single();
       if (!error && data) {
-        setResumeData({
+        const loaded: ResumeFormData = {
           personalInfo: data.personal_info ?? {},
           experience: data.experience ?? [],
           education: data.education ?? [],
@@ -150,7 +179,17 @@ export function ResumeBuilderForm({ initialResumeId }: { initialResumeId?: strin
           awards: data.awards ?? [],
           publications: data.publications ?? [],
           courses: data.courses ?? [],
-        });
+        };
+        resumeDataRef.current = loaded;
+        setResumeData(loaded);
+
+        // Offer to restore changes that never reached the server.
+        const draft = loadDraft(initialResumeId);
+        if (draft) {
+          const differing = draftChangesAgainst(draft.updates, data);
+          if (Object.keys(differing).length > 0) setPendingDraft({ savedAt: draft.savedAt, updates: differing });
+          else clearDraft(initialResumeId);
+        }
         setAppearance({
           templateId: data.template_id ?? "modern",
           themeColor: isHexColor(data.theme_color)
@@ -166,6 +205,16 @@ export function ResumeBuilderForm({ initialResumeId }: { initialResumeId?: strin
     }
     load();
   }, [initialResumeId, supabase]);
+
+  // A resume that was never saved yet (no id) can still have a local draft.
+  useEffect(() => {
+    if (initialResumeId) return;
+    const timer = setTimeout(() => {
+      const draft = loadDraft(null);
+      if (draft) setPendingDraft(draft);
+    }, 0);
+    return () => clearTimeout(timer);
+  }, [initialResumeId]);
 
   const ensureResumeExists = useCallback(async (): Promise<string | null> => {
     if (resumeIdRef.current) return resumeIdRef.current;
@@ -205,20 +254,32 @@ export function ResumeBuilderForm({ initialResumeId }: { initialResumeId?: strin
     const updates = pendingUpdates.current;
     pendingUpdates.current = {};
 
+    const wasNew = !resumeIdRef.current;
     const id = resumeIdRef.current ?? (await ensureResumeExists());
     if (!id) {
       pendingUpdates.current = { ...updates, ...pendingUpdates.current };
-      setSaveState("idle");
+      setSaveState("error");
       return false;
     }
 
     const { error } = await supabase.from("resumes").update(updates).eq("id", id);
     if (error) {
       pendingUpdates.current = { ...updates, ...pendingUpdates.current };
-      setSaveState("idle");
+      saveDraft(id, unsavedRef.current);
+      setSaveState("error");
       toast.error("Failed to save changes", { description: error.message });
       return false;
     }
+
+    // Confirmed by the server: drop these changes from the local draft
+    // (unless the value changed again while the request was in flight).
+    const remaining = { ...unsavedRef.current };
+    for (const [column, value] of Object.entries(updates)) {
+      if (remaining[column] === value) delete remaining[column];
+    }
+    unsavedRef.current = remaining;
+    if (wasNew) clearDraft(null);
+    saveDraft(id, remaining);
 
     setSaveState("saved");
     savedStatusTimeout.current = setTimeout(() => {
@@ -231,6 +292,8 @@ export function ResumeBuilderForm({ initialResumeId }: { initialResumeId?: strin
   const scheduleSave = useCallback(
     (updates: Record<string, unknown>) => {
       pendingUpdates.current = { ...pendingUpdates.current, ...updates };
+      unsavedRef.current = { ...unsavedRef.current, ...updates };
+      saveDraft(resumeIdRef.current, unsavedRef.current);
       if (savedStatusTimeout.current) clearTimeout(savedStatusTimeout.current);
       setSaveState("saving");
       if (saveTimeout.current) clearTimeout(saveTimeout.current);
@@ -239,13 +302,97 @@ export function ResumeBuilderForm({ initialResumeId }: { initialResumeId?: strin
     [flushSave]
   );
 
+  function commitData(next: ResumeFormData) {
+    resumeDataRef.current = next;
+    setResumeData(next);
+  }
+
+  function updateHistoryFlags() {
+    setHistoryFlags({
+      canUndo: history.current.past.length > 0,
+      canRedo: history.current.future.length > 0,
+    });
+  }
+
+  function recordHistory(previous: ResumeFormData, key: string) {
+    const currentHistory = history.current;
+    const now = Date.now();
+    // Typing in the same section within a second counts as one undo step.
+    const sameBurst = currentHistory.lastKey === key && now - currentHistory.lastAt < 1000 && currentHistory.past.length > 0;
+    currentHistory.lastKey = key;
+    currentHistory.lastAt = now;
+    if (!sameBurst) {
+      currentHistory.past.push(previous);
+      if (currentHistory.past.length > 50) currentHistory.past.shift();
+    }
+    currentHistory.future = [];
+    updateHistoryFlags();
+  }
+
   function updateField<K extends keyof ResumeFormData>(
     key: K,
     dbColumn: string,
     value: NonNullable<ResumeFormData[K]>
   ) {
-    setResumeData((previous) => ({ ...previous, [key]: value }));
+    const previous = resumeDataRef.current;
+    if (JSON.stringify(previous[key]) === JSON.stringify(value)) return;
+    recordHistory(previous, key);
+    commitData({ ...previous, [key]: value });
     scheduleSave({ [dbColumn]: value });
+  }
+
+  /** Moves the editor to `target` and saves whichever sections differ from the current state. */
+  function applySnapshot(target: ResumeFormData) {
+    const current = resumeDataRef.current;
+    const updates: Record<string, unknown> = {};
+    for (const field of Object.keys(FIELD_COLUMNS) as FieldKey[]) {
+      if (JSON.stringify(current[field]) !== JSON.stringify(target[field])) {
+        updates[FIELD_COLUMNS[field]] = target[field] ?? emptyColumnValue(field);
+      }
+    }
+    commitData(target);
+    setFormVersion((version) => version + 1); // remount the step so its inputs show the restored values
+    if (Object.keys(updates).length > 0) scheduleSave(updates);
+  }
+
+  function undo() {
+    const currentHistory = history.current;
+    const target = currentHistory.past.pop();
+    if (!target) return;
+    currentHistory.future.push(resumeDataRef.current);
+    currentHistory.lastKey = null;
+    applySnapshot(target);
+    updateHistoryFlags();
+  }
+
+  function redo() {
+    const currentHistory = history.current;
+    const target = currentHistory.future.pop();
+    if (!target) return;
+    currentHistory.past.push(resumeDataRef.current);
+    currentHistory.lastKey = null;
+    applySnapshot(target);
+    updateHistoryFlags();
+  }
+
+  function restoreDraft() {
+    if (!pendingDraft) return;
+    const patch: Record<string, unknown> = {};
+    for (const [column, value] of Object.entries(pendingDraft.updates)) {
+      const field = fieldForColumn(column);
+      if (field) patch[field] = value;
+    }
+    recordHistory(resumeDataRef.current, "draft-restore");
+    history.current.lastKey = null;
+    commitData({ ...resumeDataRef.current, ...patch });
+    setFormVersion((version) => version + 1);
+    scheduleSave(pendingDraft.updates);
+    setPendingDraft(null);
+  }
+
+  function discardDraft() {
+    clearDraft(resumeIdRef.current);
+    setPendingDraft(null);
   }
 
   async function goToStep(index: number) {
@@ -269,9 +416,57 @@ export function ResumeBuilderForm({ initialResumeId }: { initialResumeId?: strin
     router.push(`/builder/${id}/templates`);
   }
 
-  useEffect(() => () => {
-    if (saveTimeout.current) clearTimeout(saveTimeout.current);
-    if (savedStatusTimeout.current) clearTimeout(savedStatusTimeout.current);
+  useEffect(() => {
+    flushRef.current = flushSave;
+    shortcutsRef.current = { undo, redo };
+  });
+
+  useEffect(() => {
+    const hasUnsaved = () => Object.keys(unsavedRef.current).length > 0;
+
+    // Warn before closing or reloading the tab while changes are still unsaved.
+    const onBeforeUnload = (event: BeforeUnloadEvent) => {
+      if (!hasUnsaved()) return;
+      event.preventDefault();
+      event.returnValue = "";
+    };
+    // Push pending changes out as soon as the tab is hidden, or the connection returns.
+    const onVisibility = () => {
+      if (document.visibilityState === "hidden" && hasUnsaved()) void flushRef.current();
+    };
+    const onOnline = () => {
+      if (hasUnsaved()) void flushRef.current();
+    };
+    // Ctrl/Cmd+Z and Ctrl+Shift+Z / Ctrl+Y (inputs keep the browser's own text undo).
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (!(event.ctrlKey || event.metaKey)) return;
+      const target = event.target as HTMLElement | null;
+      if (target && (["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName) || target.isContentEditable)) return;
+      const key = event.key.toLowerCase();
+      if (key === "z" && !event.shiftKey) {
+        event.preventDefault();
+        shortcutsRef.current.undo();
+      } else if ((key === "z" && event.shiftKey) || key === "y") {
+        event.preventDefault();
+        shortcutsRef.current.redo();
+      }
+    };
+
+    window.addEventListener("beforeunload", onBeforeUnload);
+    window.addEventListener("online", onOnline);
+    window.addEventListener("keydown", onKeyDown);
+    document.addEventListener("visibilitychange", onVisibility);
+
+    return () => {
+      window.removeEventListener("beforeunload", onBeforeUnload);
+      window.removeEventListener("online", onOnline);
+      window.removeEventListener("keydown", onKeyDown);
+      document.removeEventListener("visibilitychange", onVisibility);
+      if (saveTimeout.current) clearTimeout(saveTimeout.current);
+      if (savedStatusTimeout.current) clearTimeout(savedStatusTimeout.current);
+      // Leaving the editor (e.g. in-app navigation): save whatever is still pending.
+      if (hasUnsaved()) void flushRef.current();
+    };
   }, []);
 
   if (loading) return <SplashLoader />;
@@ -314,34 +509,97 @@ export function ResumeBuilderForm({ initialResumeId }: { initialResumeId?: strin
         )}
       </div>
 
-      <div className="h-5 mb-4 text-center">
-        <AnimatePresence mode="wait">
-          {saveState === "saving" && (
-            <motion.span
-              key="saving"
-              initial={{ opacity: 0, y: -4 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 4 }}
-              transition={{ duration: 0.15 }}
-              className="inline-flex items-center gap-1.5 text-xs text-foreground/40"
+      {pendingDraft && (
+        <div
+          role="alert"
+          className="mb-4 flex flex-wrap items-center justify-between gap-2 rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-sm text-amber-900"
+        >
+          <span>We found unsaved changes from {new Date(pendingDraft.savedAt).toLocaleString()}.</span>
+          <span className="flex gap-2">
+            <button
+              type="button"
+              onClick={restoreDraft}
+              className="rounded-full bg-primary px-3 py-1 text-xs font-medium text-primary-fg"
             >
-              <span className="w-1.5 h-1.5 rounded-full bg-foreground/40 animate-pulse" />
-              Saving...
-            </motion.span>
-          )}
-          {saveState === "saved" && (
-            <motion.span
-              key="saved"
-              initial={{ opacity: 0, y: -4 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 4 }}
-              transition={{ duration: 0.15 }}
-              className="inline-flex items-center gap-1 text-xs text-green-600"
+              Restore
+            </button>
+            <button
+              type="button"
+              onClick={discardDraft}
+              className="rounded-full border border-amber-400 px-3 py-1 text-xs font-medium"
             >
-              <Check size={12} /> Saved
-            </motion.span>
-          )}
-        </AnimatePresence>
+              Discard
+            </button>
+          </span>
+        </div>
+      )}
+
+      <div className="mb-4 flex h-9 items-center justify-between">
+        <div className="flex w-20 gap-1">
+          <button
+            type="button"
+            onClick={undo}
+            disabled={!historyFlags.canUndo}
+            className="flex h-9 w-9 items-center justify-center rounded-full border border-border hover:bg-muted disabled:cursor-not-allowed disabled:opacity-30 sm:h-8 sm:w-8"
+            aria-label="Undo"
+            title="Undo (Ctrl+Z)"
+          >
+            <Undo2 size={15} />
+          </button>
+          <button
+            type="button"
+            onClick={redo}
+            disabled={!historyFlags.canRedo}
+            className="flex h-9 w-9 items-center justify-center rounded-full border border-border hover:bg-muted disabled:cursor-not-allowed disabled:opacity-30 sm:h-8 sm:w-8"
+            aria-label="Redo"
+            title="Redo (Ctrl+Shift+Z)"
+          >
+            <Redo2 size={15} />
+          </button>
+        </div>
+        <div className="flex-1 text-center">
+          <AnimatePresence mode="wait">
+            {saveState === "saving" && (
+              <motion.span
+                key="saving"
+                initial={{ opacity: 0, y: -4 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 4 }}
+                transition={{ duration: 0.15 }}
+                className="inline-flex items-center gap-1.5 text-xs text-foreground/40"
+              >
+                <span className="w-1.5 h-1.5 rounded-full bg-foreground/40 animate-pulse" />
+                Saving...
+              </motion.span>
+            )}
+            {saveState === "saved" && (
+              <motion.span
+                key="saved"
+                initial={{ opacity: 0, y: -4 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 4 }}
+                transition={{ duration: 0.15 }}
+                className="inline-flex items-center gap-1 text-xs text-green-600"
+              >
+                <Check size={12} /> Saved
+              </motion.span>
+            )}
+            {saveState === "error" && (
+              <motion.span
+                key="error"
+                initial={{ opacity: 0, y: -4 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 4 }}
+                transition={{ duration: 0.15 }}
+                className="inline-flex items-center gap-1.5 text-xs text-amber-600"
+              >
+                <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
+                Not saved yet — kept on this device
+              </motion.span>
+            )}
+          </AnimatePresence>
+        </div>
+        <div className="w-20" aria-hidden />
       </div>
 
       {((currentStep === "skills" && !skillsValid) ||
@@ -370,7 +628,7 @@ export function ResumeBuilderForm({ initialResumeId }: { initialResumeId?: strin
         <div className="flex-1 max-w-2xl mx-auto min-w-0">
           <AnimatePresence mode="wait">
             <motion.div
-              key={currentStep}
+              key={`${currentStep}-${formVersion}`}
               initial={{ opacity: 0, x: 30 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -30 }}
