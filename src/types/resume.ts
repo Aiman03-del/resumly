@@ -69,6 +69,7 @@ export interface ResumeData {
   templateId?: string;
   accentColor?: string;
   fontFamily?: string;
+  fontScale?: number;
   sectionOrder?: SectionKey[];
   personalInfo: {
     fullName: string;
@@ -78,6 +79,8 @@ export interface ResumeData {
     location?: string;
     photoUrl?: string;
     fontFamily?: string;
+    pageTarget?: "auto" | "1" | "2";
+    fontScale?: number;
   };
   summary: string;
   themeColor?: string;

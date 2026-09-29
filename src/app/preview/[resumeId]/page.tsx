@@ -8,6 +8,8 @@ import { ScaledPreview } from "@/components/scaled-preview";
 import type { ResumeData } from "@/types/resume";
 import { sanitizeResumeUrls } from "@/types/resume";
 import { normalizeOrder } from "@/lib/section-order";
+import { FULL_BLEED_TEMPLATES, normalizeFontScale } from "@/lib/page-settings";
+import { PageStatusPill, useContentHeight } from "@/components/page-quality";
 import { Printer, Pencil, ArrowLeft } from "lucide-react";
 import {
   Tooltip,
@@ -31,6 +33,7 @@ export default function PreviewPage() {
   const [templateId, setTemplateId] = useState("modern");
   const [accentColor, setAccentColor] = useState<string | undefined>(undefined);
   const [loading, setLoading] = useState(true);
+  const contentHeight = useContentHeight(resumeRef, !loading);
 
   useEffect(() => {
     async function load() {
@@ -52,6 +55,7 @@ export default function PreviewPage() {
           themeColor: resume.theme_color ?? undefined,
           sectionOrder: normalizeOrder(resume.section_order),
           fontFamily: resume.personal_info?.fontFamily ?? undefined,
+          fontScale: normalizeFontScale(resume.personal_info?.fontScale),
         } as ResumeData));
         setTemplateId(resume.template_id ?? "modern");
         setAccentColor(resume.accent_color ?? undefined);
@@ -122,13 +126,14 @@ export default function PreviewPage() {
             <DownloadMenu
               targetRef={resumeRef}
               fileName={data.personalInfo.fullName || "resume"}
-              fullBleed={["bold", "creative", "sidebar-pro"].includes(templateId)}
+              fullBleed={FULL_BLEED_TEMPLATES.includes(templateId)}
             />
           </div>
         </div>
       </div>
 
       <div className="max-w-4xl mx-auto py-6 sm:py-8 px-4 sm:px-6">
+        <PageStatusPill data={data} templateId={templateId} height={contentHeight} />
         {/* On-screen copy: always laid out at 800px, then scaled down to fit — phones and laptops see the same page. */}
         <div className="rounded-lg overflow-hidden shadow-lg bg-white print:hidden">
           <ScaledPreview>

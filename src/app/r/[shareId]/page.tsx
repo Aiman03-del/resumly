@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 import { ResumeRenderer } from "@/components/templates";
 import { ScaledPreview } from "@/components/scaled-preview";
 import { normalizeOrder } from "@/lib/section-order";
+import { normalizeFontScale } from "@/lib/page-settings";
 import { isHexColor } from "@/lib/theme";
 import type { ResumeData } from "@/types/resume";
 import { sanitizeResumeUrls } from "@/types/resume";
@@ -59,6 +60,7 @@ const loadSharedResume = cache(async (shareId: string) => {
     themeColor: isHexColor(row.theme_color) ? row.theme_color : undefined,
     sectionOrder: normalizeOrder(row.section_order),
     fontFamily: row.personal_info?.fontFamily ?? undefined,
+    fontScale: normalizeFontScale(row.personal_info?.fontScale),
   };
 
   return {

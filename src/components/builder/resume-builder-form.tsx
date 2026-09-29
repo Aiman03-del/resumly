@@ -20,6 +20,7 @@ import { DesktopPreview, MobilePreview } from "@/components/builder/live-preview
 import { normalizeOrder, type SectionKey } from "@/lib/section-order";
 import { isHexColor } from "@/lib/theme";
 import { DEFAULT_RESUME_FONT } from "@/lib/font";
+import { normalizeFontScale } from "@/lib/page-settings";
 import {
   FIELD_COLUMNS,
   clearDraft,
@@ -147,6 +148,7 @@ export function ResumeBuilderForm({ initialResumeId }: { initialResumeId?: strin
       sectionOrder: appearance.sectionOrder,
       themeColor: appearance.themeColor,
       fontFamily: appearance.fontFamily,
+      fontScale: normalizeFontScale(resumeData.personalInfo?.fontScale),
     }),
     [resumeData, appearance],
   );
@@ -640,6 +642,8 @@ export function ResumeBuilderForm({ initialResumeId }: { initialResumeId?: strin
                   onChange={(data) => updateField("personalInfo", "personal_info", {
                     ...data,
                     fontFamily: resumeData.personalInfo?.fontFamily,
+                    pageTarget: resumeData.personalInfo?.pageTarget,
+                    fontScale: resumeData.personalInfo?.fontScale,
                   })}
                   onValidityChange={setPersonalInfoValid}
                 />

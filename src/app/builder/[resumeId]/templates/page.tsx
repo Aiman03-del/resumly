@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { TemplatePicker } from "@/components/template-picker";
@@ -13,6 +13,8 @@ import type { ResumeData } from "@/types/resume";
 import { normalizeOrder, type SectionKey } from "@/lib/section-order";
 import { isHexColor, themeStyle } from "@/lib/theme";
 import { DEFAULT_RESUME_FONT } from "@/lib/font";
+import { PageGuides, PageQualityCard, useContentHeight } from "@/components/page-quality";
+import { normalizeFontScale, normalizePageTarget, type PageTarget } from "@/lib/page-settings";
 import { toast } from "sonner";
 
 export default function TemplateSelectPage() {
@@ -27,6 +29,10 @@ export default function TemplateSelectPage() {
   const [resumeData, setResumeData] = useState<ResumeData | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [pageTarget, setPageTarget] = useState<PageTarget>("auto");
+  const [fontScale, setFontScale] = useState(1);
+  const contentRef = useRef<HTMLDivElement>(null);
+  const contentHeight = useContentHeight(contentRef, !loading);
 
   useEffect(() => {
     async function load() {
@@ -40,6 +46,8 @@ export default function TemplateSelectPage() {
 
         setSelected(data.template_id ?? "modern");
         setFontFamily(savedPersonalInfo.fontFamily ?? DEFAULT_RESUME_FONT);
+        setPageTarget(normalizePageTarget(savedPersonalInfo.pageTarget));
+        setFontScale(normalizeFontScale(savedPersonalInfo.fontScale));
         setThemeColor(isHexColor(data.theme_color) ? data.theme_color : isHexColor(data.accent_color) ? data.accent_color : null);
         setSectionOrder(normalizeOrder(data.section_order));
         setResumeData({
@@ -70,6 +78,8 @@ export default function TemplateSelectPage() {
     const updatedPersonalInfo = {
       ...resumeData?.personalInfo,
       fontFamily,
+      pageTarget,
+      fontScale,
     };
 
     const { error } = await supabase
@@ -111,6 +121,7 @@ export default function TemplateSelectPage() {
     sectionOrder,
     themeColor: themeColor ?? undefined,
     fontFamily,
+    fontScale,
   };
 
   return (
@@ -132,6 +143,18 @@ export default function TemplateSelectPage() {
             onChange={setFontFamily}
           />
 
+          <PageQualityCard
+            templateId={selected}
+            target={pageTarget}
+            onTargetChange={setPageTarget}
+            scale={fontScale}
+            onScaleChange={setFontScale}
+            contentHeight={contentHeight}
+            getHeight={() => contentRef.current?.offsetHeight ?? 0}
+            hasPhoto={Boolean(resumeData.personalInfo.photoUrl)}
+            hasContact={Boolean(resumeData.personalInfo.email && resumeData.personalInfo.phone)}
+          />
+
           <SectionOrderList order={sectionOrder} onChange={setSectionOrder} />
 
           <div style={themeStyle(themeColor)}>
@@ -150,9 +173,12 @@ export default function TemplateSelectPage() {
           <div className="rounded-xl border border-border overflow-hidden shadow-sm bg-neutral-100">
             <div className="max-h-[75vh] overflow-auto p-6 flex justify-center">
               <div className="w-fit origin-top scale-[0.62] sm:scale-[0.8]">
-                <SectionDndProvider order={sectionOrder} onChange={setSectionOrder}>
-                  <ResumeRenderer templateId={selected} data={previewData} />
-                </SectionDndProvider>
+                <div ref={contentRef} className="relative w-[800px]">
+                  <SectionDndProvider order={sectionOrder} onChange={setSectionOrder}>
+                    <ResumeRenderer templateId={selected} data={previewData} />
+                  </SectionDndProvider>
+                  <PageGuides height={contentHeight} templateId={selected} />
+                </div>
               </div>
             </div>
           </div>

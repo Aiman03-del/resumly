@@ -2,6 +2,7 @@ import type { ComponentType } from "react";
 import type { ResumeData } from "@/types/resume";
 import { themeStyle } from "@/lib/theme";
 import { getResumeFontCss } from "@/lib/font";
+import { fontScaleStyle } from "@/lib/page-settings";
 
 import { ModernTemplate } from "./modern-template";
 import { CreativeTemplate } from "./creative-template";
@@ -44,7 +45,7 @@ export function ResumeRenderer({
   };
 
   return (
-    <div style={{ ...theme, ...fontStyle }}>
+    <div style={{ ...theme, ...fontStyle, ...fontScaleStyle(data.fontScale) }}>
       <Template data={data} />
     </div>
   );
