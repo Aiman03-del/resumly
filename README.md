@@ -1,38 +1,74 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Resumly
 
-## Getting Started
+A resume builder with live preview, 10 templates, job-specific ATS analysis,
+AI polishing, resume versions, shareable links, and PDF/PNG/JPG export.
 
-First, run the development server:
+## Tech stack
+
+Next.js 16 (App Router) · React 19 · TypeScript · Tailwind CSS 4 ·
+Supabase (Auth + Postgres) · ImageKit (photo upload) · Groq API (AI features) ·
+Vitest + Playwright
+
+## Getting started
 
 ```bash
+npm install
+cp .env.example .env.local   # then fill in the values below
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+In PowerShell, use `Copy-Item .env.example .env.local` for the copy step.
+Open [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Environment variables
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Variable | Purpose |
+| --- | --- |
+| `NEXT_PUBLIC_SUPABASE_URL` | Supabase project URL |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase anon (public) key |
+| `NEXT_PUBLIC_SITE_URL` | Public site URL, e.g. `http://localhost:3000` |
+| `NEXT_PUBLIC_IMAGEKIT_URL_ENDPOINT` | ImageKit URL endpoint |
+| `IMAGEKIT_PUBLIC_KEY` | ImageKit public key (server) |
+| `IMAGEKIT_PRIVATE_KEY` | ImageKit private key (server only) |
+| `GROQ_API_KEY` | Groq API key for polish / ATS / job match / cover letter |
+| `GROQ_MODEL` | Optional model override |
 
-## Learn More
+Never commit `.env.local`.
 
-To learn more about Next.js, take a look at the following resources:
+## Supabase setup
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+1. Create a Supabase project and copy the URL and anon key.
+2. Create the `resumes` table (with a `user_id` column referencing `auth.users`)
+   and apply the SQL migrations in `supabase/migrations/`. The Trash view requires
+   the `deleted_at` column added by the included migration.
+3. **Enable Row Level Security** on `resumes` and add owner-only policies
+   (`auth.uid() = user_id`) for select / insert / update / delete.
+4. Public share links are served by the `get_shared_resume(p_share_id)` RPC,
+   so the table itself never needs a public read policy. Verify that the RPC
+   returns only explicitly shared resumes and does not expose private user fields.
+5. Add `http://localhost:3000/auth/callback` (and your production URL) to
+   Auth → URL Configuration → Redirect URLs.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Scripts
 
-## Deploy on Vercel
+| Command | What it does |
+| --- | --- |
+| `npm run dev` | Start the dev server |
+| `npm run build` / `npm start` | Production build / serve |
+| `npm run lint` | ESLint |
+| `npx tsc --noEmit` | Type check |
+| `npm test` | Unit tests (Vitest) |
+| `npm run test:e2e` | End-to-end tests (Playwright) |
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Auth flow
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
-# resumly
-# resumly
+`src/proxy.ts` protects `/dashboard`, `/builder`, `/preview` and `/account`.
+Logged-out users are sent to `/login?redirectTo=<page>` and returned there
+after signing in. Shared resumes at `/r/<shareId>` are public.
+
+## Deployment
+
+Deploy on Vercel (or any Node host). Set all environment variables above in
+the project settings and add the production URL to Supabase's redirect list.
+CI (`.github/workflows/ci.yml`) runs lint, type check, tests and a production
+build for pull requests and pushes to `main`.

@@ -1,7 +1,11 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
-const PROTECTED_PATHS = ["/builder", "/dashboard", "/account"];
+const PROTECTED_PATHS = ["/dashboard", "/builder", "/preview", "/account"];
+const AUTH_PATHS = ["/login", "/signup"];
+
+const matchesPath = (pathname: string, paths: string[]) =>
+  paths.some((path) => pathname === path || pathname.startsWith(`${path}/`));
 
 export async function proxy(request: NextRequest) {
   let response = NextResponse.next({ request });
@@ -23,16 +27,20 @@ export async function proxy(request: NextRequest) {
     }
   );
 
-  const { data: { user } } = await supabase.auth.getUser();
-  const isProtected = PROTECTED_PATHS.some((path) =>
-    request.nextUrl.pathname.startsWith(path)
-  );
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
-  if (isProtected && !user) {
-    const url = request.nextUrl.clone();
-    url.pathname = "/login";
-    url.searchParams.set("redirect", request.nextUrl.pathname);
-    return NextResponse.redirect(url);
+  const { pathname } = request.nextUrl;
+
+  if (!user && matchesPath(pathname, PROTECTED_PATHS)) {
+    const loginUrl = new URL("/login", request.url);
+    loginUrl.searchParams.set("redirectTo", pathname);
+    return NextResponse.redirect(loginUrl);
+  }
+
+  if (user && matchesPath(pathname, AUTH_PATHS)) {
+    return NextResponse.redirect(new URL("/dashboard", request.url));
   }
 
   return response;

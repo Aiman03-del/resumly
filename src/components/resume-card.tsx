@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Copy, Loader2, Pencil, Trash2 } from "lucide-react";
+import { Copy, Loader2, Pencil, RotateCcw, Trash2 } from "lucide-react";
 import { ResumeRenderer } from "@/components/templates";
 import { ScaledPreview } from "@/components/scaled-preview";
 import { VersionNameDialog } from "@/components/version-name-dialog";
@@ -37,6 +37,8 @@ export function ResumeCard({
   updatedAt,
   templateId,
   accentColor,
+  completion,
+  trashed = false,
   data,
 }: {
   id: string;
@@ -45,6 +47,8 @@ export function ResumeCard({
   updatedAt: string;
   templateId: string;
   accentColor?: string;
+  completion: number;
+  trashed?: boolean;
   data: ResumeData;
 }) {
   const router = useRouter();
@@ -52,6 +56,23 @@ export function ResumeCard({
   const [deleting, setDeleting] = useState(false);
   const [renameOpen, setRenameOpen] = useState(false);
   const [duplicateOpen, setDuplicateOpen] = useState(false);
+
+  async function setTrashed(value: boolean) {
+    const { error } = await supabase
+      .from("resumes")
+      .update({ deleted_at: value ? new Date().toISOString() : null })
+      .eq("id", id);
+    if (error) {
+      toast.error(value ? "Could not move to trash" : "Could not restore", { description: error.message });
+      return;
+    }
+    router.refresh();
+    if (value) {
+      toast.success("Moved to trash", { action: { label: "Undo", onClick: () => setTrashed(false) } });
+    } else {
+      toast.success("Resume restored");
+    }
+  }
 
   async function handleDelete() {
     setDeleting(true);
@@ -93,56 +114,82 @@ export function ResumeCard({
   return (
     <div className="group relative min-w-0 p-4 sm:p-5 rounded-xl border border-border hover:border-primary transition-colors">
       <div className="absolute top-3 right-3 z-10 flex gap-1.5 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100 transition-opacity">
-        <button
-          type="button"
-          onClick={() => setRenameOpen(true)}
-          className={`${iconButton} hover:bg-muted`}
-          aria-label={`Rename ${displayName}`}
-          title="Rename"
-        >
-          <Pencil size={13} />
-        </button>
-        <button
-          type="button"
-          onClick={() => setDuplicateOpen(true)}
-          className={`${iconButton} hover:bg-muted`}
-          aria-label={`Save ${displayName} as a new version`}
-          title="Save as new version"
-        >
-          <Copy size={13} />
-        </button>
-        <AlertDialog>
-          <AlertDialogTrigger
-            render={
-              <button
-                type="button"
-                className={`${iconButton} hover:bg-red-50 hover:text-red-600 hover:border-red-200 focus-visible:outline-red-600`}
-                aria-label={`Delete ${displayName}`}
-                title="Delete"
-              >
-                <Trash2 size={13} />
-              </button>
-            }
-          />
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Delete this resume?</AlertDialogTitle>
-              <AlertDialogDescription>
-                This will permanently delete &quot;{displayName}&quot;. This action cannot be undone.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel disabled={deleting}>Cancel</AlertDialogCancel>
-              <AlertDialogAction
-                onClick={handleDelete}
-                disabled={deleting}
-                className="bg-red-600 text-white hover:bg-red-700 focus-visible:ring-red-600"
-              >
-                {deleting ? <Loader2 size={14} className="animate-spin" /> : "Delete"}
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
+        {!trashed && (
+          <>
+            <button
+              type="button"
+              onClick={() => setRenameOpen(true)}
+              className={`${iconButton} hover:bg-muted`}
+              aria-label={`Rename ${displayName}`}
+              title="Rename"
+            >
+              <Pencil size={13} />
+            </button>
+            <button
+              type="button"
+              onClick={() => setDuplicateOpen(true)}
+              className={`${iconButton} hover:bg-muted`}
+              aria-label={`Save ${displayName} as a new version`}
+              title="Save as new version"
+            >
+              <Copy size={13} />
+            </button>
+            <button
+              type="button"
+              onClick={() => setTrashed(true)}
+              className={`${iconButton} hover:bg-red-50 hover:text-red-600 hover:border-red-200 focus-visible:outline-red-600`}
+              aria-label={`Move ${displayName} to trash`}
+              title="Move to trash"
+            >
+              <Trash2 size={13} />
+            </button>
+          </>
+        )}
+        {trashed && (
+          <>
+            <button
+              type="button"
+              onClick={() => setTrashed(false)}
+              className={`${iconButton} hover:bg-muted`}
+              aria-label={`Restore ${displayName}`}
+              title="Restore"
+            >
+              <RotateCcw size={13} />
+            </button>
+            <AlertDialog>
+              <AlertDialogTrigger
+                render={
+                  <button
+                    type="button"
+                    className={`${iconButton} hover:bg-red-50 hover:text-red-600 hover:border-red-200 focus-visible:outline-red-600`}
+                    aria-label={`Delete ${displayName} forever`}
+                    title="Delete forever"
+                  >
+                    <Trash2 size={13} />
+                  </button>
+                }
+              />
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Delete forever?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This will permanently delete &quot;{displayName}&quot;. This action cannot be undone.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel disabled={deleting}>Cancel</AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={handleDelete}
+                    disabled={deleting}
+                    className="bg-red-600 text-white hover:bg-red-700 focus-visible:ring-red-600"
+                  >
+                    {deleting ? <Loader2 size={14} className="animate-spin" /> : "Delete"}
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </>
+        )}
       </div>
 
       <Link href={`/preview/${id}`} className="block focus-visible:outline-2 focus-visible:outline-primary">
@@ -153,27 +200,47 @@ export function ResumeCard({
         </div>
         <p className="font-medium truncate pr-10">{displayName}</p>
         {subtitle && <p className="text-xs text-foreground/60 truncate mt-0.5">{subtitle}</p>}
-        <p className="text-xs text-foreground/50 mt-1">Updated {updatedAt}</p>
+        <p className="text-xs text-foreground/50 mt-1">Last edited {updatedAt}</p>
+        <div className="mt-2.5 flex items-center gap-2" title={`${completion}% complete`}>
+          <div
+            role="progressbar"
+            aria-valuenow={completion}
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-label="Resume completion"
+            className="h-1.5 flex-1 rounded-full bg-muted overflow-hidden"
+          >
+            <div
+              className={`h-full rounded-full ${completion === 100 ? "bg-green-500" : "bg-primary"}`}
+              style={{ width: `${completion}%` }}
+            />
+          </div>
+          <span className="text-[11px] tabular-nums text-foreground/50">{completion}%</span>
+        </div>
       </Link>
 
-      <VersionNameDialog
-        open={renameOpen}
-        onOpenChange={setRenameOpen}
-        title="Rename this version"
-        description="Give it a name that tells you what it is for, like a job title."
-        initialValue={displayName}
-        confirmLabel="Save"
-        onSubmit={handleRename}
-      />
-      <VersionNameDialog
-        open={duplicateOpen}
-        onOpenChange={setDuplicateOpen}
-        title="Save as a new version"
-        description="This makes an independent copy you can tailor for a different role. The original stays unchanged."
-        initialValue={suggestCopyTitle(displayName)}
-        confirmLabel="Create copy"
-        onSubmit={handleDuplicate}
-      />
+      {!trashed && (
+        <>
+          <VersionNameDialog
+            open={renameOpen}
+            onOpenChange={setRenameOpen}
+            title="Rename this version"
+            description="Give it a name that tells you what it is for, like a job title."
+            initialValue={displayName}
+            confirmLabel="Save"
+            onSubmit={handleRename}
+          />
+          <VersionNameDialog
+            open={duplicateOpen}
+            onOpenChange={setDuplicateOpen}
+            title="Save as a new version"
+            description="This makes an independent copy you can tailor for a different role. The original stays unchanged."
+            initialValue={suggestCopyTitle(displayName)}
+            confirmLabel="Create copy"
+            onSubmit={handleDuplicate}
+          />
+        </>
+      )}
     </div>
   );
 }

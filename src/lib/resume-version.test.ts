@@ -91,7 +91,7 @@ type Result = { data?: unknown; error?: { message: string } | null; count?: numb
 /** A chainable stand-in for the Supabase query builder. */
 function builder(result: Result) {
   const chain: Record<string, unknown> = {};
-  for (const method of ["select", "eq", "insert", "update"]) chain[method] = vi.fn(() => chain);
+  for (const method of ["select", "eq", "is", "insert", "update"]) chain[method] = vi.fn(() => chain);
   chain.single = vi.fn(() => Promise.resolve(result));
   chain.then = (resolve: (value: Result) => unknown) => Promise.resolve(result).then(resolve);
   return chain;

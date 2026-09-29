@@ -75,7 +75,8 @@ export async function duplicateResume(
   const { count, error: countError } = await supabase
     .from("resumes")
     .select("id", { count: "exact", head: true })
-    .eq("user_id", user.id);
+    .eq("user_id", user.id)
+    .is("deleted_at", null);
   if (countError) throw new Error(countError.message);
   if ((count ?? 0) >= MAX_RESUMES_PER_USER) {
     throw new Error(`You've reached the limit of ${MAX_RESUMES_PER_USER} resumes. Delete one to create another.`);

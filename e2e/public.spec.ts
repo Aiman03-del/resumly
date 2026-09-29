@@ -6,7 +6,7 @@ for (const path of ["/builder/new", "/dashboard", "/account"]) {
     await expect(page).toHaveURL(/\/login(?:\?redirectTo=|$)/);
     const loginUrl = new URL(page.url());
     expect(loginUrl.pathname).toBe("/login");
-    expect(loginUrl.searchParams.get("redirectTo")).toBe(path === "/account" ? null : path);
+    expect(loginUrl.searchParams.get("redirectTo")).toBe(path);
   });
 }
 
