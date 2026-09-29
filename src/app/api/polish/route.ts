@@ -1,7 +1,15 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { apiErrorResponse, createGroqClient } from "@/lib/api-error";
+import { apiErrorResponse, createGroqClient, readJson } from "@/lib/api-error";
+import { checkRateLimit } from "@/lib/rate-limit";
+import { enforceDailyQuota } from "@/lib/api-usage";
+
+const MAX_BODY_BYTES = 512 * 1024;
+const MAX_CONTENT_LENGTH = 10000;
+const BURST_LIMIT = 15;
+const BURST_WINDOW_MS = 60_000;
+const DAILY_LIMIT = 100;
 
 type TextRecord = Record<string, unknown>;
 
@@ -33,17 +41,7 @@ export async function POST(req: NextRequest) {
     }
 
     // 2. Validate request body
-    let body: unknown;
-
-    try {
-      body = await req.json();
-    } catch {
-      return NextResponse.json(
-        { error: "Invalid JSON request body" },
-        { status: 400 }
-      );
-    }
-
+    const body = await readJson(req, MAX_BODY_BYTES);
     const data = asRecord(body);
     const section = textValue(data.section);
     const content = data.content;
@@ -72,7 +70,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    if (content.length > 10000) {
+    if (content.length > MAX_CONTENT_LENGTH) {
       return NextResponse.json(
         { error: "Content exceeds the maximum allowed length" },
         { status: 400 }
@@ -144,7 +142,17 @@ ${content}
 Return ONLY the improved text, no preamble.`;
     }
 
-    // 4. Generate response
+    // 4. Rate limit: short burst guard + durable daily quota
+    const burst = checkRateLimit(`polish:${user.id}`, BURST_LIMIT, BURST_WINDOW_MS);
+    if (!burst.allowed) {
+      return NextResponse.json(
+        { error: "You're sending requests too quickly. Please wait a moment and try again." },
+        { status: 429, headers: { "Retry-After": String(burst.retryAfterSeconds) } },
+      );
+    }
+    await enforceDailyQuota(supabase, "polish", DAILY_LIMIT);
+
+    // 5. Generate response
     const response = await groq.chat.completions.create({
       model: process.env.GROQ_MODEL || "openai/gpt-oss-20b",
       messages: [{ role: "user", content: prompt }],

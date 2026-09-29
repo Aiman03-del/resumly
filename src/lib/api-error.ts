@@ -20,10 +20,43 @@ export function createGroqClient() {
 }
 
 /** Parse the JSON body, or throw a clean 400. */
-export async function readJson(req: Request): Promise<unknown> {
+export async function readJson(req: Request, maxBytes?: number): Promise<unknown> {
   try {
+    if (maxBytes !== undefined) {
+      const contentLength = Number(req.headers.get("content-length"));
+      if (Number.isFinite(contentLength) && contentLength > maxBytes) {
+        throw new HttpError(413, "Request body is too large.");
+      }
+
+      const reader = req.body?.getReader();
+      if (reader) {
+        const chunks: Uint8Array[] = [];
+        let totalBytes = 0;
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          totalBytes += value.byteLength;
+          if (totalBytes > maxBytes) {
+            await reader.cancel().catch(() => undefined);
+            throw new HttpError(413, "Request body is too large.");
+          }
+          chunks.push(value);
+        }
+
+        const body = new Uint8Array(totalBytes);
+        let offset = 0;
+        for (const chunk of chunks) {
+          body.set(chunk, offset);
+          offset += chunk.byteLength;
+        }
+        return JSON.parse(new TextDecoder().decode(body));
+      }
+    }
+
     return await req.json();
-  } catch {
+  } catch (error) {
+    if (error instanceof HttpError) throw error;
     throw new HttpError(400, "Invalid JSON request body.");
   }
 }

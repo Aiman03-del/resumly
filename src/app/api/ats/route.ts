@@ -2,6 +2,13 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { apiErrorResponse, createGroqClient, readJson } from "@/lib/api-error";
 import { asArray, asRecord, buildResumeText, hasResumeContent, text, type Rec } from "@/lib/resume-text";
+import { checkRateLimit } from "@/lib/rate-limit";
+import { enforceDailyQuota } from "@/lib/api-usage";
+
+const MAX_BODY_BYTES = 512 * 1024;
+const BURST_LIMIT = 5;
+const BURST_WINDOW_MS = 60_000;
+const DAILY_LIMIT = 20;
 
 const CATEGORIES = [
   { key: "contact", label: "Contact & basics", max: 10 },
@@ -37,7 +44,16 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "AI service is temporarily unavailable" }, { status: 503 });
     }
 
-    const body = (await readJson(req)) as { resume?: unknown };
+    const burst = checkRateLimit(`ats:${user.id}`, BURST_LIMIT, BURST_WINDOW_MS);
+    if (!burst.allowed) {
+      return NextResponse.json(
+        { error: "You're sending requests too quickly. Please wait a moment and try again." },
+        { status: 429, headers: { "Retry-After": String(burst.retryAfterSeconds) } },
+      );
+    }
+    await enforceDailyQuota(supabase, "ats", DAILY_LIMIT);
+
+    const body = (await readJson(req, MAX_BODY_BYTES)) as { resume?: unknown };
     const resume = asRecord(body.resume);
     const hasContent = hasResumeContent(resume);
     if (!hasContent) {
