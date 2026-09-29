@@ -261,6 +261,7 @@ export function ResumeBuilderForm({ initialResumeId }: { initialResumeId?: strin
       setSaveState("error");
       return false;
     }
+    if (wasNew) clearDraft(null);
 
     const { error } = await supabase.from("resumes").update(updates).eq("id", id);
     if (error) {
@@ -278,7 +279,6 @@ export function ResumeBuilderForm({ initialResumeId }: { initialResumeId?: strin
       if (remaining[column] === value) delete remaining[column];
     }
     unsavedRef.current = remaining;
-    if (wasNew) clearDraft(null);
     saveDraft(id, remaining);
 
     setSaveState("saved");
