@@ -13,6 +13,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { printResumeAsPdf } from "@/lib/print-pdf";
 import { toast } from "sonner";
 
 type Format = "pdf" | "png" | "jpg";
@@ -23,9 +24,11 @@ const EXPORT_SCALE = 2;
 export function DownloadMenu({
   targetRef,
   fileName,
+  fullBleed = false,
 }: {
   targetRef: React.RefObject<HTMLDivElement | null>;
   fileName: string;
+  fullBleed?: boolean;
 }) {
   const [loading, setLoading] = useState<Format | null>(null);
 
@@ -34,6 +37,15 @@ export function DownloadMenu({
     setLoading(format);
 
     try {
+      if (format === "pdf") {
+        try {
+          await printResumeAsPdf(targetRef.current, { fileName, fullBleed });
+          return;
+        } catch (printError) {
+          console.warn("Print export failed, using image fallback:", printError);
+        }
+      }
+
       const html2canvas = (await import("html2canvas-pro")).default;
       const element = targetRef.current;
       const canvas = await html2canvas(element, {

@@ -104,7 +104,7 @@ export function ResumeBuilderForm({ initialResumeId }: { initialResumeId?: strin
         email: resumeData.personalInfo?.email ?? "",
         phone: resumeData.personalInfo?.phone ?? "",
       },
-      summary: resumeData.summary ?? "",
+      summary: typeof resumeData.summary === "string" ? resumeData.summary : "",
       experience: resumeData.experience ?? [],
       education: resumeData.education ?? [],
       skills: resumeData.skills ?? [],
@@ -138,7 +138,12 @@ export function ResumeBuilderForm({ initialResumeId }: { initialResumeId?: strin
           education: data.education ?? [],
           skills: data.skills ?? [],
           projects: data.projects ?? [],
-          summary: data.summary?.text ?? data.summary ?? "",
+          summary:
+            typeof data.summary === "string"
+              ? data.summary
+              : typeof data.summary?.text === "string"
+                ? data.summary.text
+                : "",
           certifications: data.certifications ?? [],
           languages: data.languages ?? [],
           achievements: data.achievements ?? [],

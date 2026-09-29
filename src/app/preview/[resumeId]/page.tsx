@@ -119,7 +119,11 @@ export default function PreviewPage() {
               <TooltipContent side="bottom">Print</TooltipContent>
             </Tooltip>
 
-            <DownloadMenu targetRef={resumeRef} fileName={data.personalInfo.fullName || "resume"} />
+            <DownloadMenu
+              targetRef={resumeRef}
+              fileName={data.personalInfo.fullName || "resume"}
+              fullBleed={["bold", "creative", "sidebar-pro"].includes(templateId)}
+            />
           </div>
         </div>
       </div>
