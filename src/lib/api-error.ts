@@ -22,6 +22,11 @@ export function createGroqClient() {
 /** Parse the JSON body, or throw a clean 400. */
 export async function readJson(req: Request, maxBytes?: number): Promise<unknown> {
   try {
+    const contentType = req.headers.get("content-type")?.split(";", 1)[0].trim().toLowerCase();
+    if (contentType !== "application/json") {
+      throw new HttpError(415, "Content-Type must be application/json.");
+    }
+
     if (maxBytes !== undefined) {
       const contentLength = Number(req.headers.get("content-length"));
       if (Number.isFinite(contentLength) && contentLength > maxBytes) {

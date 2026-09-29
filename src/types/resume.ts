@@ -141,32 +141,119 @@ export interface ResumeData {
   }[];
 }
 
-const sanitizeUrl = (value?: string | null) => {
-  if (!value) return undefined;
+export const LIMITS = {
+  url: 2048,
+  summary: 2000,
+  maxExperience: 20,
+  maxEducation: 20,
+  maxSkills: 100,
+  maxProjects: 20,
+  maxCertifications: 50,
+  maxLanguages: 30,
+  maxAchievements: 30,
+  maxAwards: 30,
+  maxPublications: 30,
+  maxCourses: 50,
+} as const;
 
-  const trimmed = value.trim();
-  if (!trimmed) return undefined;
-
-  if (/^(?:[a-z]+:)?\/\//i.test(trimmed) || trimmed.startsWith("/")) {
-    try {
-      const url = new URL(trimmed, "https://example.com");
-      return ["http:", "https:"].includes(url.protocol) ? url.toString() : undefined;
-    } catch {
-      return undefined;
-    }
+export function isHttpUrl(value: unknown): value is string {
+  if (typeof value !== "string" || !value.trim() || value.length > LIMITS.url) return false;
+  try {
+    const url = new URL(value.trim());
+    return (url.protocol === "http:" || url.protocol === "https:") &&
+      Boolean(url.hostname) && !url.username && !url.password;
+  } catch {
+    return false;
   }
+}
 
-  if (/^(?:https?:)?\/\//i.test(trimmed) || /^https?:\/\//i.test(trimmed)) {
-    try {
-      const url = new URL(trimmed);
-      return ["http:", "https:"].includes(url.protocol) ? url.toString() : undefined;
-    } catch {
-      return undefined;
-    }
+export function isAllowedPhotoUrl(value: unknown): value is string {
+  if (!isHttpUrl(value)) return false;
+  try {
+    const url = new URL(value.trim());
+    return url.protocol === "https:" && url.hostname === "ik.imagekit.io";
+  } catch {
+    return false;
   }
+}
 
-  return trimmed;
-};
+const limitedText = (limit: number) => z.string().max(limit).optional();
+const optionalUrl = z.string().max(LIMITS.url).refine(isHttpUrl, "Enter a valid HTTP or HTTPS URL").optional();
+
+const apiPersonalInfoSchema = z.object({
+  fullName: limitedText(200),
+  email: z.string().email().max(254).optional(),
+  phone: limitedText(80),
+  role: limitedText(200),
+  location: limitedText(200),
+  photoUrl: z.string().max(LIMITS.url).refine(isAllowedPhotoUrl, "Photo must be hosted on ImageKit").optional(),
+  fontFamily: limitedText(100),
+});
+
+export const resumeApiSchema = z.object({
+  personalInfo: apiPersonalInfoSchema.default({}),
+  summary: z.string().max(LIMITS.summary).default(""),
+  experience: z.array(z.object({
+    company: limitedText(200),
+    role: limitedText(200),
+    startDate: limitedText(100),
+    endDate: limitedText(100),
+    description: limitedText(3000),
+  })).max(LIMITS.maxExperience).default([]),
+  education: z.array(z.object({
+    institution: limitedText(200),
+    degree: limitedText(200),
+    startDate: limitedText(100),
+    endDate: limitedText(100),
+  })).max(LIMITS.maxEducation).default([]),
+  skills: z.array(z.string().max(200)).max(LIMITS.maxSkills).default([]),
+  projects: z.array(z.object({
+    name: limitedText(200),
+    description: limitedText(3000),
+    link: optionalUrl,
+    links: z.array(optionalUrl).max(10).optional(),
+  })).max(LIMITS.maxProjects).default([]),
+  certifications: z.array(z.object({
+    name: limitedText(200),
+    issuer: limitedText(200),
+    issueDate: limitedText(100),
+    expiryDate: limitedText(100),
+    credentialId: limitedText(200),
+    credentialUrl: optionalUrl,
+  })).max(LIMITS.maxCertifications).default([]),
+  languages: z.array(z.object({ name: limitedText(100), proficiency: limitedText(100) })).max(LIMITS.maxLanguages).default([]),
+  achievements: z.array(z.object({
+    title: limitedText(200),
+    organization: limitedText(200),
+    date: limitedText(100),
+    description: limitedText(2000),
+  })).max(LIMITS.maxAchievements).default([]),
+  awards: z.array(z.object({
+    title: limitedText(200),
+    issuer: limitedText(200),
+    date: limitedText(100),
+    description: limitedText(2000),
+  })).max(LIMITS.maxAwards).default([]),
+  publications: z.array(z.object({
+    title: limitedText(200),
+    publisher: limitedText(200),
+    date: limitedText(100),
+    url: optionalUrl,
+    description: limitedText(2000),
+  })).max(LIMITS.maxPublications).default([]),
+  courses: z.array(z.object({
+    name: limitedText(200),
+    provider: limitedText(200),
+    date: limitedText(100),
+    credentialUrl: optionalUrl,
+    description: limitedText(2000),
+  })).max(LIMITS.maxCourses).default([]),
+});
+
+function sanitizeUrl(value?: string | null) {
+  if (!isHttpUrl(value)) return undefined;
+  return value.trim();
+}
 
 export function sanitizeResumeUrls<T extends ResumeData | null | undefined>(resume: T): T {
   if (!resume) return resume;
@@ -175,7 +262,9 @@ export function sanitizeResumeUrls<T extends ResumeData | null | undefined>(resu
     ...resume,
     personalInfo: {
       ...resume.personalInfo,
-      photoUrl: sanitizeUrl(resume.personalInfo.photoUrl),
+      photoUrl: isAllowedPhotoUrl(resume.personalInfo.photoUrl)
+        ? resume.personalInfo.photoUrl.trim()
+        : undefined,
     },
     projects: resume.projects?.map((project) => ({
       ...project,
