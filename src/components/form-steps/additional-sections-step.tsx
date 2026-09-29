@@ -96,7 +96,7 @@ export function AdditionalSectionStep<T extends SectionType>({
     items: z.array(schema),
   });
 
-  const { register, control, watch } = useForm<FormValues>({
+  const { register, control, subscribe } = useForm<FormValues>({
     resolver: zodResolver(formSchema) as unknown as Resolver<FormValues>,
     defaultValues: {
       items: defaultValues?.length
@@ -111,12 +111,12 @@ export function AdditionalSectionStep<T extends SectionType>({
   });
 
   useEffect(() => {
-    const subscription = watch((value) => {
-      onChange((value.items ?? []) as unknown as SectionData[T]);
+    return subscribe({
+      formState: { values: true },
+      callback: ({ values }) =>
+        onChange((values.items ?? []) as unknown as SectionData[T]),
     });
-
-    return () => subscription.unsubscribe();
-  }, [watch, onChange]);
+  }, [subscribe, onChange]);
 
   const item = (index: number) => {
     if (type === "achievements") {

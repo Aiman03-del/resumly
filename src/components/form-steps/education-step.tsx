@@ -17,21 +17,21 @@ export function EducationStep({
   defaultValues: EducationItem[];
   onChange: (data: EducationItem[]) => void;
 }) {
-  const { register, control, watch } = useForm<{ items: EducationItem[] }>({
+  const { register, control, getValues, subscribe } = useForm<{ items: EducationItem[] }>({
     defaultValues: { items: defaultValues?.length ? defaultValues : [] },
   });
   const { fields, append, remove } = useFieldArray({ control, name: "items" });
 
   useEffect(() => {
-    const subscription = watch((value) => {
-      onChange((value.items ?? []) as EducationItem[]);
+    return subscribe({
+      formState: { values: true },
+      callback: ({ values }) => onChange((values.items ?? []) as EducationItem[]),
     });
-    return () => subscription.unsubscribe();
-  }, [watch, onChange]);
+  }, [subscribe, onChange]);
 
   function handleRemove(index: number) {
     remove(index);
-    onChange(watch("items"));
+    onChange(getValues("items"));
   }
 
   return (

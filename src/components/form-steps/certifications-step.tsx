@@ -20,7 +20,7 @@ export function CertificationsStep({
   defaultValues: FormValues["items"];
   onChange: (data: FormValues["items"]) => void;
 }) {
-  const { register, control, watch } = useForm<FormValues>({
+  const { register, control, subscribe } = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       items: defaultValues?.length ? defaultValues : [],
@@ -33,12 +33,11 @@ export function CertificationsStep({
   });
 
   useEffect(() => {
-    const subscription = watch((value) => {
-      onChange((value.items ?? []) as FormValues["items"]);
+    return subscribe({
+      formState: { values: true },
+      callback: ({ values }) => onChange((values.items ?? []) as FormValues["items"]),
     });
-
-    return () => subscription.unsubscribe();
-  }, [watch, onChange]);
+  }, [subscribe, onChange]);
 
   return (
     <div className="space-y-5">

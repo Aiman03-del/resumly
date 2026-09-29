@@ -88,6 +88,7 @@ export function SidebarProTemplate({ data }: { data: ResumeData }) {
     <div className="bg-white text-neutral-900 flex min-h-[1000px] font-sans text-sm">
       <aside className="w-[32%] bg-neutral-50 border-r border-neutral-200 p-7">
         {data.personalInfo.photoUrl && (
+          // eslint-disable-next-line @next/next/no-img-element
           <img
             src={data.personalInfo.photoUrl}
             alt={data.personalInfo.fullName}

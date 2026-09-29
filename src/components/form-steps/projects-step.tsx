@@ -47,7 +47,7 @@ export function ProjectsStep({
   const {
     register,
     control,
-    watch,
+    subscribe,
     getValues,
     setValue,
     trigger,
@@ -63,13 +63,15 @@ export function ProjectsStep({
   const [polishingIndex, setPolishingIndex] = useState<number | null>(null);
 
   useEffect(() => {
-    const subscription = watch((value) => {
-      const items = (value.items ?? []) as ProjectItem[];
-      onChange(items);
-      setLiveItems(items);
+    return subscribe({
+      formState: { values: true },
+      callback: ({ values }) => {
+        const items = (values.items ?? []) as ProjectItem[];
+        onChange(items);
+        setLiveItems(items);
+      },
     });
-    return () => subscription.unsubscribe();
-  }, [watch, onChange]);
+  }, [subscribe, onChange]);
 
   function handleRemove(index: number) {
     remove(index);

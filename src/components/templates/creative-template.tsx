@@ -118,6 +118,7 @@ export function CreativeTemplate({ data }: { data: ResumeData }) {
     <div className="bg-white text-neutral-900 flex min-h-[1000px] font-sans text-sm">
       <aside className="w-[35%] bg-neutral-900 text-white p-8">
         {data.personalInfo.photoUrl && (
+          // eslint-disable-next-line @next/next/no-img-element
           <img
             src={data.personalInfo.photoUrl}
             alt={data.personalInfo.fullName}

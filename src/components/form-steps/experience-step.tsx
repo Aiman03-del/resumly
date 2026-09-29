@@ -18,7 +18,7 @@ export function ExperienceStep({
   defaultValues: FormValues["items"];
   onChange: (data: FormValues["items"]) => void;
 }) {
-  const { register, control, watch, setValue } = useForm<FormValues>({
+  const { register, control, subscribe, setValue } = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: { items: defaultValues?.length ? defaultValues : [] },
   });
@@ -28,13 +28,15 @@ export function ExperienceStep({
   const [polishingIndex, setPolishingIndex] = useState<number | null>(null);
 
   useEffect(() => {
-    const subscription = watch((value) => {
-      const items = (value.items ?? []) as ExperienceItem[];
-      onChange(items);
-      setLiveItems(items);
+    return subscribe({
+      formState: { values: true },
+      callback: ({ values }) => {
+        const items = (values.items ?? []) as ExperienceItem[];
+        onChange(items);
+        setLiveItems(items);
+      },
     });
-    return () => subscription.unsubscribe();
-  }, [watch, onChange]);
+  }, [subscribe, onChange]);
 
   function handleRemove(index: number) {
     remove(index);

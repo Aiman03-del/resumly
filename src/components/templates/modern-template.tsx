@@ -100,6 +100,7 @@ export function ModernTemplate({ data }: { data: ResumeData }) {
     <div className="bg-white text-neutral-900 p-10 max-w-[800px] mx-auto font-sans text-sm leading-relaxed">
       <header className="flex items-center gap-5 border-b-2 border-primary pb-5 mb-6">
         {data.personalInfo.photoUrl && (
+          // eslint-disable-next-line @next/next/no-img-element
           <img
             src={data.personalInfo.photoUrl}
             alt={data.personalInfo.fullName}

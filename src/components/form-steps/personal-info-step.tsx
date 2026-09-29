@@ -1,6 +1,6 @@
 "use client";
 import { useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { personalInfoSchema, PersonalInfo } from "@/types/resume";
 import { ImageUpload } from "@/components/image-upload";
@@ -17,7 +17,7 @@ export function PersonalInfoStep({
 }) {
   const {
     register,
-    watch,
+    control,
     setValue,
     trigger,
     formState: { errors, isValid },
@@ -27,7 +27,7 @@ export function PersonalInfoStep({
     defaultValues,
   });
 
-  const values = watch();
+  const values = useWatch({ control }) as PersonalInfo;
 
   useEffect(() => {
     onValidityChange(isValid);

@@ -47,31 +47,6 @@ function CreativeMock() {
   );
 }
 
-function ClassicMock() {
-  return (
-    <div className="w-full h-full bg-white p-3 flex flex-col items-center">
-      <div className="h-2 bg-neutral-800 rounded w-2/3 mb-1" />
-      <div className="h-1 bg-neutral-400 rounded w-1/2 mb-3" />
-      <div className="w-full h-px bg-neutral-300 mb-2" />
-      <div className="w-full space-y-1">
-        <div className="h-1 bg-neutral-300 rounded w-1/3" />
-        <div className="h-1 bg-neutral-200 rounded w-full" />
-        <div className="h-1 bg-neutral-200 rounded w-5/6" />
-      </div>
-    </div>
-  );
-}
-
-function MinimalMock() {
-  return (
-    <div className="w-full h-full bg-white p-3 flex flex-col justify-center">
-      <div className="h-1.5 bg-neutral-800 rounded w-3/5 mb-3" />
-      <div className="h-1 bg-neutral-300 rounded w-full" />
-      <div className="h-1 bg-neutral-300 rounded w-4/5 mt-1" />
-    </div>
-  );
-}
-
 function TimelineMock() {
   return (
     <div className="w-full h-full bg-white p-3">
@@ -94,25 +69,6 @@ function TimelineMock() {
   );
 }
 
-function CompactMock() {
-  return (
-    <div className="w-full h-full bg-white p-3">
-      <div className="h-1.5 bg-neutral-800 rounded w-2/5 mb-2" />
-      <div className="grid grid-cols-3 gap-1.5">
-        <div className="col-span-2 space-y-1">
-          <div className="h-1 bg-neutral-300 rounded w-full" />
-          <div className="h-1 bg-neutral-300 rounded w-4/5" />
-          <div className="h-1 bg-neutral-300 rounded w-full" />
-        </div>
-        <div className="space-y-1">
-          <div className="h-1 bg-primary/40 rounded w-full" />
-          <div className="h-1 bg-primary/40 rounded w-3/5" />
-        </div>
-      </div>
-    </div>
-  );
-}
-
 function BoldMock() {
   return (
     <div className="w-full h-full bg-white">
@@ -125,17 +81,6 @@ function BoldMock() {
           <div className="h-2 bg-primary/30 rounded-full w-6" />
         </div>
       </div>
-    </div>
-  );
-}
-
-function ElegantMock() {
-  return (
-    <div className="w-full h-full bg-white p-3 flex flex-col items-center justify-center">
-      <div className="h-1.5 bg-neutral-800 rounded w-2/5 mb-1" />
-      <div className="w-8 h-px bg-neutral-400 my-2" />
-      <div className="h-1 bg-neutral-300 rounded w-3/5" />
-      <div className="h-1 bg-neutral-300 rounded w-1/2 mt-1" />
     </div>
   );
 }
@@ -153,17 +98,6 @@ function SidebarProMock() {
         <div className="h-1 bg-neutral-300 rounded w-4/5" />
         <div className="h-1 bg-neutral-300 rounded w-full mt-2" />
       </div>
-    </div>
-  );
-}
-
-function TechMock() {
-  return (
-    <div className="w-full h-full bg-white p-3 font-mono">
-      <div className="h-1 bg-primary/50 rounded w-2/5 mb-2" />
-      <div className="h-1 bg-neutral-300 rounded w-full mb-1" />
-      <div className="h-1 bg-neutral-300 rounded w-3/5 mb-1" />
-      <div className="h-1 bg-neutral-200 rounded w-4/5" />
     </div>
   );
 }
