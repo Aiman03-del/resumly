@@ -22,6 +22,9 @@ const NAV_LINKS = [
   { href: "/about", label: "About" },
 ];
 
+const menuItemClass =
+  "px-2.5 py-2 gap-2 text-sm cursor-pointer text-foreground/70 focus:bg-muted focus:text-foreground transition-colors";
+
 export function Navbar() {
   const [supabase] = useState(createClient);
   const router = useRouter();
@@ -97,7 +100,7 @@ export function Navbar() {
                     <button
                       type="button"
                       aria-label="User menu"
-                      className="flex items-center justify-center size-9 rounded-full border border-border bg-muted text-foreground/70 hover:text-foreground hover:bg-accent transition-colors outline-none"
+                      className="flex items-center justify-center size-9 rounded-full border border-border bg-background text-foreground/70 hover:text-foreground hover:bg-muted aria-expanded:bg-muted aria-expanded:text-foreground transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
                     >
                       <UserIcon size={18} />
                     </button>
@@ -107,24 +110,28 @@ export function Navbar() {
                 <DropdownMenuContent align="end" sideOffset={8} className="w-64">
                   <DropdownMenuItem
                     render={<Link href="/account" />}
-                    className="flex-col items-start gap-0 px-2 py-2"
+                    className="flex-col items-start gap-0 px-2.5 py-2 cursor-pointer focus:bg-muted transition-colors"
                   >
                     <span className="text-sm font-medium text-foreground truncate max-w-full">{displayName}</span>
-                    <span className="text-xs text-muted-foreground truncate max-w-full">{user.email}</span>
+                    <span className="text-xs text-foreground/60 truncate max-w-full">{user.email}</span>
                   </DropdownMenuItem>
 
                   <DropdownMenuSeparator />
 
-                  <DropdownMenuItem render={<Link href="/dashboard" />} className="px-2 py-2">
+                  <DropdownMenuItem render={<Link href="/dashboard" />} className={menuItemClass}>
                     <LayoutDashboard size={15} /> Dashboard
                   </DropdownMenuItem>
-                  <DropdownMenuItem render={<Link href="/settings" />} className="px-2 py-2">
+                  <DropdownMenuItem render={<Link href="/settings" />} className={menuItemClass}>
                     <Settings size={15} /> Settings
                   </DropdownMenuItem>
 
                   <DropdownMenuSeparator />
 
-                  <DropdownMenuItem variant="destructive" onClick={handleLogout} className="px-2 py-2">
+                  <DropdownMenuItem
+                    variant="destructive"
+                    onClick={handleLogout}
+                    className="px-2.5 py-2 gap-2 text-sm cursor-pointer transition-colors"
+                  >
                     <LogOut size={15} /> Log Out
                   </DropdownMenuItem>
                 </DropdownMenuContent>
