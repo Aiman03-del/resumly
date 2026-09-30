@@ -12,7 +12,7 @@ function pick(row: Record<string, unknown>, keys: string[]): unknown {
   return undefined;
 }
 
-/** Today's AI usage for the signed-in user. */
+/** Today's AI usage and purchased credit balance for the signed-in user. */
 export async function GET() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -48,9 +48,14 @@ export async function GET() {
     }
   }
 
-  if (failed) {
-    return NextResponse.json({ available: false, reason, limits: AI_LIMITS, used });
-  }
+  const { data: creditRow } = await supabase
+    .from("credit_balances")
+    .select("balance")
+    .eq("user_id", user.id)
+    .maybeSingle();
+  const credits = Number(creditRow?.balance ?? 0);
+
+  if (failed) return NextResponse.json({ available: false, reason, limits: AI_LIMITS, used, credits });
 
   const today = new Date().toISOString().slice(0, 10);
   for (const row of (rows ?? []) as Record<string, unknown>[]) {
@@ -61,5 +66,5 @@ export async function GET() {
     const count = Number(pick(row, ["count", "request_count", "requests", "calls", "usage"]) ?? 0);
     if (Number.isFinite(count)) used[route] += count;
   }
-  return NextResponse.json({ available: true, limits: AI_LIMITS, used });
+  return NextResponse.json({ available: true, limits: AI_LIMITS, used, credits });
 }

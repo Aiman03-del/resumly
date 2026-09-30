@@ -9,10 +9,22 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-export default async function SettingsPage() {
+export default async function SettingsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ tab?: string; payment?: string }>;
+}) {
+  const { tab, payment } = await searchParams;
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login?redirectTo=/settings");
 
-  return <SettingsView email={user.email ?? ""} settings={parseUserSettings(user.user_metadata)} />;
+  return (
+    <SettingsView
+      email={user.email ?? ""}
+      settings={parseUserSettings(user.user_metadata)}
+      initialTab={tab}
+      paymentStatus={payment}
+    />
+  );
 }

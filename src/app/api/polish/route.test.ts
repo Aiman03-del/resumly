@@ -140,11 +140,23 @@ describe("POST /api/polish", () => {
   });
 
   it("returns 429 and skips AI when the daily quota is exceeded", async () => {
-    mocks.rpc.mockResolvedValue({ data: 101, error: null });
+    mocks.rpc
+      .mockResolvedValueOnce({ data: 101, error: null })
+      .mockResolvedValueOnce({ data: false, error: null });
     const res = await POST(makeReq(validBody));
     expect(res.status).toBe(429);
     expect((await res.json()).error).toMatch(/today's limit/i);
     expect(mocks.create).not.toHaveBeenCalled();
+  });
+
+  it("spends a purchased credit after the daily free quota", async () => {
+    mocks.rpc
+      .mockResolvedValueOnce({ data: 101, error: null })
+      .mockResolvedValueOnce({ data: true, error: null });
+    const res = await POST(makeReq(validBody));
+    expect(res.status).toBe(200);
+    expect(mocks.rpc).toHaveBeenNthCalledWith(2, "consume_credit");
+    expect(mocks.create).toHaveBeenCalled();
   });
 
   it("allows the 100th request", async () => {

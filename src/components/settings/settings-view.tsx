@@ -21,8 +21,18 @@ const TABS: { id: TabId; label: string; icon: ComponentType<{ size?: number }> }
   { id: "data", label: "Data & account", icon: ShieldAlert },
 ];
 
-export function SettingsView({ email, settings }: { email: string; settings: UserSettings }) {
-  const [tab, setTab] = useState<TabId>("profile");
+export function SettingsView({
+  email,
+  settings,
+  initialTab,
+  paymentStatus,
+}: {
+  email: string;
+  settings: UserSettings;
+  initialTab?: string;
+  paymentStatus?: string;
+}) {
+  const [tab, setTab] = useState<TabId>(TABS.some((item) => item.id === initialTab) ? (initialTab as TabId) : "profile");
 
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8 sm:py-10">
@@ -58,7 +68,7 @@ export function SettingsView({ email, settings }: { email: string; settings: Use
           {tab === "profile" && <ProfileSection email={email} settings={settings} />}
           {tab === "security" && <SecuritySection email={email} />}
           {tab === "defaults" && <DefaultsSection defaults={settings.resume} />}
-          {tab === "usage" && <UsageSection />}
+          {tab === "usage" && <UsageSection paymentStatus={paymentStatus} />}
           {tab === "sharing" && <SharingSection />}
           {tab === "data" && <DataSection email={email} />}
         </div>
