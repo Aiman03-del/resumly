@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Loader2 } from "lucide-react";
+import { Coins, Loader2 } from "lucide-react";
 import { AI_FEATURE_LABELS, AI_LIMITS, type AiRoute } from "@/lib/ai-limits";
 import { SettingsCard } from "./settings-ui";
 import { BuyCredits } from "./buy-credits";
@@ -99,9 +99,15 @@ export function UsageSection({ paymentStatus }: { paymentStatus?: string }) {
         title="AI credits"
         description="When you use up a free daily limit, each extra AI request uses 1 credit. Credits never expire."
       >
-        <p className="text-sm mb-4">
-          Your balance: <span className="font-semibold text-base">{credits}</span> credits
-        </p>
+        <div className="mb-6 flex items-center gap-4 rounded-xl bg-muted px-5 py-4">
+          <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+            <Coins size={22} />
+          </span>
+          <div>
+            <p className="text-3xl font-bold leading-none">{usage === null ? "–" : credits}</p>
+            <p className="mt-1 text-sm text-foreground/60">credits available</p>
+          </div>
+        </div>
         <BuyCredits />
       </SettingsCard>
     </div>
