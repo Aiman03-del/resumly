@@ -1,8 +1,7 @@
 "use client";
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { ResumeRenderer } from "@/components/templates";
-import { sampleResumeData } from "@/lib/sample-resume";
+import { TemplateThumbnail } from "@/components/template-thumbnail";
 import { TemplatePreviewModal } from "./template-preview-modal";
 
 const templates = [
@@ -42,11 +41,7 @@ export function TemplateGallery() {
               onClick={() => setPreview({ id: t.id, name: t.name })}
               className="group block w-full text-left rounded-xl border border-border overflow-hidden hover:border-primary/50 transition-colors bg-white"
             >
-              <div className="h-32 overflow-hidden relative bg-neutral-100">
-                <div className="absolute top-0 left-0 w-[400%] origin-top-left scale-[0.25] pointer-events-none">
-                  <ResumeRenderer templateId={t.id} data={sampleResumeData} />
-                </div>
-              </div>
+              <TemplateThumbnail id={t.id} className="bg-neutral-100" />
               <div className="px-3 py-2.5 text-sm font-medium border-t border-border group-hover:text-primary transition-colors">
                 {t.name}
               </div>

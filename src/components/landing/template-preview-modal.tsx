@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { X } from "lucide-react";
 import { ResumeRenderer } from "@/components/templates";
 import { sampleResumeData } from "@/lib/sample-resume";
+import { ScaledPreview } from "@/components/scaled-preview";
 
 export function TemplatePreviewModal({
   templateId,
@@ -44,9 +45,11 @@ export function TemplatePreviewModal({
               <X size={18} />
             </button>
           </div>
-          <div className="overflow-y-auto p-6 bg-muted/20">
-            <div className="shadow-lg mx-auto max-w-[600px]">
-              <ResumeRenderer templateId={templateId} data={sampleResumeData} />
+          <div className="overflow-y-auto p-3 sm:p-6 bg-muted/20">
+            <div className="shadow-lg mx-auto max-w-[600px] bg-white">
+              <ScaledPreview>
+                <ResumeRenderer templateId={templateId} data={sampleResumeData} />
+              </ScaledPreview>
             </div>
           </div>
           <div className="px-5 py-4 border-t border-border shrink-0">

@@ -3,6 +3,7 @@ import type { CSSProperties } from "react";
 import { motion } from "framer-motion";
 import { templates } from "@/types/template";
 import { Check } from "lucide-react";
+import { TemplateThumbnail } from "@/components/template-thumbnail";
 
 export function TemplatePreview({ id, accentColor }: { id: string; accentColor?: string }) {
   const style = accentColor
@@ -188,8 +189,8 @@ export function TemplatePicker({
                 selected === template.id ? "border-primary bg-primary/5" : "border-border hover:bg-muted"
               }`}
             >
-              <div className="w-11 shrink-0 rounded-md overflow-hidden border border-border">
-                <TemplatePreview id={template.id} />
+              <div className="w-14 shrink-0 rounded-md overflow-hidden border border-border">
+                <TemplateThumbnail id={template.id} skeleton={<TemplatePreview id={template.id} />} />
               </div>
               <div className="min-w-0">
                 <p className="font-medium text-sm truncate">{template.name}</p>
@@ -219,7 +220,11 @@ export function TemplatePicker({
             selected === template.id ? "border-primary" : "border-border"
           }`}
         >
-          <TemplatePreview id={template.id} accentColor={accentColor} />
+          <TemplateThumbnail
+            id={template.id}
+            accentColor={accentColor}
+            skeleton={<TemplatePreview id={template.id} accentColor={accentColor} />}
+          />
           {selected === template.id && (
             <div className="absolute top-2 right-2 bg-primary text-primary-fg rounded-full p-1">
               <Check size={16} />
