@@ -9,14 +9,72 @@ export class HttpError extends Error {
   }
 }
 
-/** Groq client (OpenAI-compatible) with a hard timeout so requests can't hang. */
+const GROQ_BASE_URL = "https://api.groq.com/openai/v1";
+const DEFAULT_COOLDOWN_MS = 60_000;
+const MAX_COOLDOWN_MS = 60 * 60_000;
+
+type ChatParams = OpenAI.Chat.Completions.ChatCompletionCreateParamsNonStreaming;
+type ChatResult = OpenAI.Chat.Completions.ChatCompletion;
+
+/** When each key may be tried again after a rate limit (in-memory, per server instance). */
+const cooldownUntil = new Map<string, number>();
+
+/** GROQ_API_KEY is required; GROQ_API_KEY_2 and GROQ_API_KEY_3 are optional backups. */
+function groqKeys(): string[] {
+  return [process.env.GROQ_API_KEY, process.env.GROQ_API_KEY_2, process.env.GROQ_API_KEY_3]
+    .map((key) => key?.trim())
+    .filter((key): key is string => !!key);
+}
+
+function cooldownFor(error: InstanceType<typeof OpenAI.RateLimitError>): number {
+  const seconds = Number(error.headers?.get("retry-after"));
+  if (!Number.isFinite(seconds) || seconds <= 0) return DEFAULT_COOLDOWN_MS;
+  return Math.min(seconds * 1000, MAX_COOLDOWN_MS);
+}
+
+/**
+ * Groq client (OpenAI-compatible) with a hard timeout so requests can't hang.
+ * If a key hits its rate limit, the request is retried with the next key.
+ */
 export function createGroqClient() {
-  return new OpenAI({
-    apiKey: process.env.GROQ_API_KEY,
-    baseURL: "https://api.groq.com/openai/v1",
-    timeout: 20_000,
-    maxRetries: 1,
-  });
+  const keys = groqKeys();
+  if (keys.length === 0) throw new HttpError(503, "AI service is temporarily unavailable");
+
+  // Keys that aren't cooling down go first; the rest follow, soonest-to-recover first.
+  const now = Date.now();
+  const ordered = [...keys].sort(
+    (a, b) => Math.max(cooldownUntil.get(a) ?? 0, now) - Math.max(cooldownUntil.get(b) ?? 0, now),
+  );
+
+  return {
+    chat: {
+      completions: {
+        async create(params: ChatParams, options?: OpenAI.RequestOptions): Promise<ChatResult> {
+          let lastError: unknown;
+
+          for (const key of ordered) {
+            const client = new OpenAI({
+              apiKey: key,
+              baseURL: GROQ_BASE_URL,
+              timeout: 20_000,
+              maxRetries: keys.length > 1 ? 0 : 1,
+            });
+
+            try {
+              return await client.chat.completions.create(params, options);
+            } catch (error) {
+              if (!(error instanceof OpenAI.RateLimitError)) throw error;
+              cooldownUntil.set(key, Date.now() + cooldownFor(error));
+              console.warn(`[groq] key #${keys.indexOf(key) + 1} is rate limited, trying the next key`);
+              lastError = error;
+            }
+          }
+
+          throw lastError;
+        },
+      },
+    },
+  };
 }
 
 /** Parse the JSON body, or throw a clean 400. */
