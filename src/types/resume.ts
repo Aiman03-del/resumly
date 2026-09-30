@@ -81,6 +81,8 @@ export interface ResumeData {
     fontFamily?: string;
     pageTarget?: "auto" | "1" | "2";
     fontScale?: number;
+    /** Hide email and phone on the public share page. */
+    hideContact?: boolean;
   };
   summary: string;
   themeColor?: string;

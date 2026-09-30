@@ -1,4 +1,5 @@
 import type { ResumeData } from "@/types/resume";
+import { joinContact } from "@/lib/contact-line";
 import { normalizeOrder, pickOrder, type SectionKey } from "@/lib/section-order";
 import { renderSections } from "@/lib/render-sections";
 import { AdditionalResumeSections } from "./additional-resume-sections";
@@ -99,8 +100,7 @@ export function BoldTemplate({ data }: { data: ResumeData }) {
           <p className="text-primary-fg/90 text-sm font-medium mt-0.5">{data.personalInfo.role}</p>
         )}
         <p className="text-primary-fg/80 text-xs mt-2">
-          {data.personalInfo.email} · {data.personalInfo.phone}
-          {data.personalInfo.location && ` · ${data.personalInfo.location}`}
+          {joinContact([data.personalInfo.email, data.personalInfo.phone, data.personalInfo.location])}
         </p>
       </header>
 

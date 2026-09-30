@@ -4,11 +4,12 @@ import { apiErrorResponse, createGroqClient, readJson } from "@/lib/api-error";
 import { asArray, asRecord, buildResumeText, hasResumeContent, text, type Rec } from "@/lib/resume-text";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { enforceDailyQuota } from "@/lib/api-usage";
+import { AI_LIMITS } from "@/lib/ai-limits";
 
 const MAX_BODY_BYTES = 512 * 1024;
 const BURST_LIMIT = 5;
 const BURST_WINDOW_MS = 60_000;
-const DAILY_LIMIT = 20;
+const DAILY_LIMIT = AI_LIMITS["ats"];
 
 const CATEGORIES = [
   { key: "contact", label: "Contact & basics", max: 10 },

@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase/server";
 import { apiErrorResponse, createGroqClient, HttpError, readJson } from "@/lib/api-error";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { enforceDailyQuota } from "@/lib/api-usage";
+import { AI_LIMITS } from "@/lib/ai-limits";
 
 export const runtime = "nodejs";
 
@@ -168,7 +169,7 @@ const BURST_LIMIT = 5;
 const BURST_WINDOW_MS = 60_000;
 
 // Durable per-day cap, backed by Supabase (survives cold starts / multiple instances).
-const DAILY_LIMIT = 30;
+const DAILY_LIMIT = AI_LIMITS["project-link"];
 
 export async function POST(req: NextRequest) {
   try {

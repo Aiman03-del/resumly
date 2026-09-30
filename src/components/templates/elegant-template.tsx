@@ -1,4 +1,5 @@
 import type { ResumeData } from "@/types/resume";
+import { joinContact } from "@/lib/contact-line";
 import { normalizeOrder, pickOrder, type SectionKey } from "@/lib/section-order";
 import { renderSections } from "@/lib/render-sections";
 import { AdditionalResumeSections } from "./additional-resume-sections";
@@ -79,8 +80,7 @@ export function ElegantTemplate({ data }: { data: ResumeData }) {
         )}
         <div className="w-16 h-px bg-neutral-400 mx-auto my-3" />
         <p className="text-neutral-500 text-xs">
-          {data.personalInfo.email} &nbsp;•&nbsp; {data.personalInfo.phone}
-          {data.personalInfo.location && ` \u00A0•\u00A0 ${data.personalInfo.location}`}
+          {joinContact([data.personalInfo.email, data.personalInfo.phone, data.personalInfo.location], " \u00A0•\u00A0 ")}
         </p>
       </header>
 

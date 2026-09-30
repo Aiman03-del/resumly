@@ -1,4 +1,5 @@
 import type { ResumeData } from "@/types/resume";
+import { joinContact } from "@/lib/contact-line";
 import { normalizeOrder, pickOrder, type SectionKey } from "@/lib/section-order";
 import { renderSections } from "@/lib/render-sections";
 import { AdditionalResumeSections } from "./additional-resume-sections";
@@ -87,8 +88,7 @@ export function TechTemplate({ data }: { data: ResumeData }) {
           <p className="text-neutral-500 text-xs">{"// "}{data.personalInfo.role}</p>
         )}
         <p className="text-neutral-500 mt-1">
-          {data.personalInfo.email} | {data.personalInfo.phone}
-          {data.personalInfo.location && ` | ${data.personalInfo.location}`}
+          {joinContact([data.personalInfo.email, data.personalInfo.phone, data.personalInfo.location], " | ")}
         </p>
       </header>
 

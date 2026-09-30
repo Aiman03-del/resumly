@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import { createClient } from "@/lib/supabase/client";
+import { parseUserSettings, resumeSeedFromSettings } from "@/lib/user-settings";
 import { PersonalInfoStep } from "@/components/form-steps/personal-info-step";
 import { ExperienceStep } from "@/components/form-steps/experience-step";
 import { EducationStep } from "@/components/form-steps/education-step";
@@ -76,6 +77,15 @@ const stepLabels: Record<(typeof steps)[number], string> = {
     "publications",
     "courses",
   ];
+
+  /** Template and colour from saved defaults, for the first save of a new resume. */
+  function newResumeStyle(metadata: unknown) {
+    const { templateId, themeColor } = resumeSeedFromSettings(parseUserSettings(metadata), "");
+    return {
+      template_id: templateId,
+      ...(themeColor && { theme_color: themeColor, accent_color: themeColor }),
+    };
+  }
 
 export function ResumeBuilderForm({ initialResumeId }: { initialResumeId?: string }) {
   const router = useRouter();
@@ -219,6 +229,30 @@ export function ResumeBuilderForm({ initialResumeId }: { initialResumeId?: strin
     return () => clearTimeout(timer);
   }, [initialResumeId]);
 
+  // New resume: pre-fill contact details and style from saved Settings defaults.
+  useEffect(() => {
+    if (initialResumeId) return;
+    let cancelled = false;
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (cancelled || !user) return;
+      if (Object.keys(resumeDataRef.current.personalInfo ?? {}).length > 0) return;
+      const seed = resumeSeedFromSettings(parseUserSettings(user.user_metadata), user.email ?? "");
+      const next: ResumeFormData = { ...resumeDataRef.current, personalInfo: seed.personalInfo };
+      resumeDataRef.current = next;
+      setResumeData(next);
+      setAppearance((current) => ({
+        ...current,
+        templateId: seed.templateId,
+        themeColor: seed.themeColor ?? undefined,
+        fontFamily: seed.personalInfo.fontFamily,
+      }));
+      setFormVersion((version) => version + 1);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [initialResumeId, supabase]);
+
   const ensureResumeExists = useCallback(async (): Promise<string | null> => {
     if (resumeIdRef.current) return resumeIdRef.current;
 
@@ -232,11 +266,16 @@ export function ResumeBuilderForm({ initialResumeId }: { initialResumeId?: strin
       return null;
     }
 
-    const { data, error } = await supabase
+    const base = { user_id: user.id, title: "Untitled Resume" };
+    let { data, error } = await supabase
       .from("resumes")
-      .insert({ user_id: user.id, title: "Untitled Resume" })
+      .insert({ ...base, ...newResumeStyle(user.user_metadata) })
       .select()
       .single();
+
+    if (error) {
+      ({ data, error } = await supabase.from("resumes").insert(base).select().single());
+    }
 
     if (error) {
       toast.error("Failed to create resume", { description: error.message });
@@ -641,6 +680,7 @@ export function ResumeBuilderForm({ initialResumeId }: { initialResumeId?: strin
                     fontFamily: resumeData.personalInfo?.fontFamily,
                     pageTarget: resumeData.personalInfo?.pageTarget,
                     fontScale: resumeData.personalInfo?.fontScale,
+                    hideContact: resumeData.personalInfo?.hideContact,
                   })}
                   onValidityChange={setPersonalInfoValid}
                 />

@@ -4,6 +4,7 @@ import { apiErrorResponse, createGroqClient, readJson } from "@/lib/api-error";
 import { asRecord, buildResumeText, hasResumeContent, text } from "@/lib/resume-text";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { enforceDailyQuota } from "@/lib/api-usage";
+import { AI_LIMITS } from "@/lib/ai-limits";
 
 const TONES = {
   professional: "polished, formal and confident",
@@ -22,7 +23,7 @@ const MAX_JOB_LENGTH = 6000;
 const MAX_BODY_BYTES = 512 * 1024;
 const BURST_LIMIT = 5;
 const BURST_WINDOW_MS = 60_000;
-const DAILY_LIMIT = 20;
+const DAILY_LIMIT = AI_LIMITS["cover-letter"];
 
 export async function POST(req: NextRequest) {
   try {

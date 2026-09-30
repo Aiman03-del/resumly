@@ -44,8 +44,11 @@ const loadSharedResume = cache(async (shareId: string) => {
   if (!data) return null;
 
   const row = data as SharedRow;
+  const basePersonalInfo = row.personal_info ?? { fullName: "", email: "", phone: "" };
   const resume: ResumeData = {
-    personalInfo: row.personal_info ?? { fullName: "", email: "", phone: "" },
+    personalInfo: basePersonalInfo.hideContact === true
+      ? { ...basePersonalInfo, email: "", phone: "" }
+      : basePersonalInfo,
     summary: typeof row.summary === "string" ? row.summary : row.summary?.text ?? "",
     experience: row.experience ?? [],
     education: row.education ?? [],

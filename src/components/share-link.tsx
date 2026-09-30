@@ -4,19 +4,11 @@ import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { AlertCircle, Check, Copy, ExternalLink, Share2, X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { newShareId } from "@/lib/share-id";
 import { SplashLoader } from "@/components/splash-screen";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 const subscribeNoop = () => () => {};
-
-function newShareId() {
-  const bytes = new Uint8Array(16);
-  crypto.getRandomValues(bytes);
-  return btoa(String.fromCharCode(...bytes))
-    .replace(/\+/g, "-")
-    .replace(/\//g, "_")
-    .replace(/=+$/, "");
-}
 
 export function ShareLink({ resumeId }: { resumeId: string }) {
   const supabase = useMemo(() => createClient(), []);
@@ -125,7 +117,7 @@ export function ShareLink({ resumeId }: { resumeId: string }) {
                           <a href={url} target="_blank" rel="noopener noreferrer" aria-label="Open the public page in a new tab" className="shrink-0 flex items-center px-3 rounded-lg border border-border hover:bg-muted transition-colors"><ExternalLink size={14} /></a>
                         </div>
                       )}
-                      <p className="text-[11px] text-foreground/40">The public page shows everything on your resume, including your email and phone number. Search engines are asked not to list it. Turning sharing off stops the link immediately, and turning it back on creates a new link.</p>
+                      <p className="text-[11px] text-foreground/40">The public page shows your resume details. You can hide your email and phone from Settings. Search engines are asked not to list it. Turning sharing off stops the link immediately, and turning it back on creates a new link.</p>
                     </>
                   )}
                 </div>

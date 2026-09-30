@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { LogOut, Menu, X } from "lucide-react";
+import { LogOut, Menu, Settings, X } from "lucide-react";
 import { Logo } from "@/components/logo";
 import { createClient } from "@/lib/supabase/client";
 import type { User } from "@supabase/supabase-js";
@@ -82,6 +82,9 @@ export function Navbar() {
               <Link href="/builder/new" className="hidden sm:block px-4 py-2 rounded-full bg-primary text-primary-fg text-sm font-medium hover:opacity-90 transition-opacity">
                 New Resume
               </Link>
+              <Link href="/settings" className={`hidden md:flex items-center gap-1.5 text-sm transition-colors ${pathname.startsWith("/settings") ? "text-foreground font-medium" : "text-foreground/60 hover:text-foreground"}`}>
+                <Settings size={15} /> Settings
+              </Link>
               <button onClick={handleLogout} className="hidden md:flex items-center gap-1.5 text-sm text-foreground/60 hover:text-foreground transition-colors">
                 <LogOut size={15} /> Log Out
               </button>
@@ -117,6 +120,7 @@ export function Navbar() {
                 <>
                   <Link href="/dashboard" onClick={() => setMenuOpen(false)} className="py-2.5 text-sm text-foreground/70">Dashboard</Link>
                   <Link href="/builder/new" onClick={() => setMenuOpen(false)} className="py-2.5 text-sm text-foreground/70">New Resume</Link>
+                  <Link href="/settings" onClick={() => setMenuOpen(false)} className="py-2.5 text-sm text-foreground/70">Settings</Link>
                   <button onClick={handleLogout} className="py-2.5 text-sm text-left text-red-500">Log Out</button>
                 </>
               ) : (

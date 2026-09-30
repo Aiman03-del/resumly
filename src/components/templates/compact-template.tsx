@@ -1,4 +1,5 @@
 import type { ResumeData } from "@/types/resume";
+import { joinContact } from "@/lib/contact-line";
 import { normalizeOrder, pickOrder } from "@/lib/section-order";
 import { renderSections } from "@/lib/render-sections";
 import { AdditionalResumeSections } from "./additional-resume-sections";
@@ -86,7 +87,7 @@ export function CompactTemplate({ data }: { data: ResumeData }) {
           {data.personalInfo.role && (
             <p className="text-primary text-xs font-medium">{data.personalInfo.role}</p>
           )}
-          <p className="text-neutral-500 text-[11px]">{data.personalInfo.email} · {data.personalInfo.phone}</p>
+          <p className="text-neutral-500 text-[11px]">{joinContact([data.personalInfo.email, data.personalInfo.phone])}</p>
         </div>
         {data.personalInfo.location && (
           <p className="text-neutral-400 text-[11px] shrink-0">{data.personalInfo.location}</p>

@@ -4,6 +4,7 @@ import { apiErrorResponse, createGroqClient, readJson } from "@/lib/api-error";
 import { asArray, asRecord, buildResumeText, hasResumeContent, text, type Rec } from "@/lib/resume-text";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { enforceDailyQuota } from "@/lib/api-usage";
+import { AI_LIMITS } from "@/lib/ai-limits";
 import {
   computeMatchScore,
   matchRequirements,
@@ -16,7 +17,7 @@ const MIN_JOB_LENGTH = 80;
 const MAX_JOB_LENGTH = 8000;
 const BURST_LIMIT = 5;
 const BURST_WINDOW_MS = 60_000;
-const DAILY_LIMIT = 20;
+const DAILY_LIMIT = AI_LIMITS["job-match"];
 const MIN_REQUIREMENTS = 3;
 
 function parseJson(raw: string): Rec | null {

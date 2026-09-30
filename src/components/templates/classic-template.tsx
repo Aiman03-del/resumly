@@ -1,4 +1,5 @@
 import type { ResumeData } from "@/types/resume";
+import { joinContact } from "@/lib/contact-line";
 import { normalizeOrder, pickOrder, type SectionKey } from "@/lib/section-order";
 import { renderSections } from "@/lib/render-sections";
 import { AdditionalResumeSections } from "./additional-resume-sections";
@@ -105,8 +106,7 @@ export function ClassicTemplate({ data }: { data: ResumeData }) {
           <p className="text-neutral-700 text-sm font-medium mt-1">{data.personalInfo.role}</p>
         )}
         <p className="text-neutral-600 mt-1 text-xs">
-          {data.personalInfo.email} · {data.personalInfo.phone}
-          {data.personalInfo.location && ` · ${data.personalInfo.location}`}
+          {joinContact([data.personalInfo.email, data.personalInfo.phone, data.personalInfo.location])}
         </p>
       </header>
 

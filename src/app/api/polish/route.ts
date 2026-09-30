@@ -4,12 +4,13 @@ import { createClient } from "@/lib/supabase/server";
 import { apiErrorResponse, createGroqClient, readJson } from "@/lib/api-error";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { enforceDailyQuota } from "@/lib/api-usage";
+import { AI_LIMITS } from "@/lib/ai-limits";
 
 const MAX_BODY_BYTES = 512 * 1024;
 const MAX_CONTENT_LENGTH = 10000;
 const BURST_LIMIT = 15;
 const BURST_WINDOW_MS = 60_000;
-const DAILY_LIMIT = 100;
+const DAILY_LIMIT = AI_LIMITS["polish"];
 
 type TextRecord = Record<string, unknown>;
 
