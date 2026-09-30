@@ -2,7 +2,14 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { LogOut, Menu, Settings, X } from "lucide-react";
+import { LayoutDashboard, LogOut, Menu, Settings, User as UserIcon, X } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Logo } from "@/components/logo";
 import { createClient } from "@/lib/supabase/client";
 import type { User } from "@supabase/supabase-js";
@@ -50,6 +57,11 @@ export function Navbar() {
     router.refresh();
   }
 
+  const displayName =
+    (typeof user?.user_metadata?.full_name === "string" ? user.user_metadata.full_name.trim() : "") ||
+    user?.email?.split("@")[0] ||
+    "User";
+
   const isActive = (href: string) => (href === "/" ? pathname === "/" : pathname.startsWith(href));
   const linkClass = (href: string) =>
     `text-sm transition-colors ${isActive(href) ? "text-foreground font-medium" : "text-foreground/60 hover:text-foreground"}`;
@@ -76,18 +88,47 @@ export function Navbar() {
             <div className="w-40 h-8" />
           ) : user ? (
             <>
-              <Link href="/dashboard" className="hidden sm:block text-sm text-foreground/70 hover:text-foreground transition-colors">
-                Dashboard
-              </Link>
               <Link href="/builder/new" className="hidden sm:block px-4 py-2 rounded-full bg-primary text-primary-fg text-sm font-medium hover:opacity-90 transition-opacity">
                 New Resume
               </Link>
-              <Link href="/settings" className={`hidden md:flex items-center gap-1.5 text-sm transition-colors ${pathname.startsWith("/settings") ? "text-foreground font-medium" : "text-foreground/60 hover:text-foreground"}`}>
-                <Settings size={15} /> Settings
-              </Link>
-              <button onClick={handleLogout} className="hidden md:flex items-center gap-1.5 text-sm text-foreground/60 hover:text-foreground transition-colors">
-                <LogOut size={15} /> Log Out
-              </button>
+              <DropdownMenu>
+                <DropdownMenuTrigger
+                  render={
+                    <button
+                      type="button"
+                      aria-label="User menu"
+                      className="flex items-center justify-center size-9 rounded-full border border-border bg-muted text-foreground/70 hover:text-foreground hover:bg-accent transition-colors outline-none"
+                    >
+                      <UserIcon size={18} />
+                    </button>
+                  }
+                />
+
+                <DropdownMenuContent align="end" sideOffset={8} className="w-64">
+                  <DropdownMenuItem
+                    render={<Link href="/account" />}
+                    className="flex-col items-start gap-0 px-2 py-2"
+                  >
+                    <span className="text-sm font-medium text-foreground truncate max-w-full">{displayName}</span>
+                    <span className="text-xs text-muted-foreground truncate max-w-full">{user.email}</span>
+                  </DropdownMenuItem>
+
+                  <DropdownMenuSeparator />
+
+                  <DropdownMenuItem render={<Link href="/dashboard" />} className="px-2 py-2">
+                    <LayoutDashboard size={15} /> Dashboard
+                  </DropdownMenuItem>
+                  <DropdownMenuItem render={<Link href="/settings" />} className="px-2 py-2">
+                    <Settings size={15} /> Settings
+                  </DropdownMenuItem>
+
+                  <DropdownMenuSeparator />
+
+                  <DropdownMenuItem variant="destructive" onClick={handleLogout} className="px-2 py-2">
+                    <LogOut size={15} /> Log Out
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </>
           ) : (
             <>
