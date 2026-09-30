@@ -32,15 +32,23 @@ function cooldownFor(error: InstanceType<typeof OpenAI.RateLimitError>): number 
   return Math.min(seconds * 1000, MAX_COOLDOWN_MS);
 }
 
-/**
- * Groq client (OpenAI-compatible) with a hard timeout so requests can't hang.
- * If a key hits its rate limit, the request is retried with the next key.
- */
+const AUTH_COOLDOWN_MS = 10 * 60_000;
+
+/** One immediate retry for temporary Groq/network hiccups (the SDK's own retries are off so 429s switch keys fast). */
+async function createWithRetry(client: OpenAI, params: ChatParams, options?: OpenAI.RequestOptions): Promise<ChatResult> {
+  try {
+    return await client.chat.completions.create(params, options);
+  } catch (error) {
+    const temporary = error instanceof OpenAI.InternalServerError || error instanceof OpenAI.APIConnectionError;
+    if (!temporary) throw error;
+    return client.chat.completions.create(params, options);
+  }
+}
+
 export function createGroqClient() {
   const keys = groqKeys();
   if (keys.length === 0) throw new HttpError(503, "AI service is temporarily unavailable");
 
-  // Keys that aren't cooling down go first; the rest follow, soonest-to-recover first.
   const now = Date.now();
   const ordered = [...keys].sort(
     (a, b) => Math.max(cooldownUntil.get(a) ?? 0, now) - Math.max(cooldownUntil.get(b) ?? 0, now),
@@ -53,19 +61,21 @@ export function createGroqClient() {
           let lastError: unknown;
 
           for (const key of ordered) {
-            const client = new OpenAI({
-              apiKey: key,
-              baseURL: GROQ_BASE_URL,
-              timeout: 20_000,
-              maxRetries: keys.length > 1 ? 0 : 1,
-            });
+            const client = new OpenAI({ apiKey: key, baseURL: GROQ_BASE_URL, timeout: 20_000, maxRetries: 0 });
+            const label = `key #${keys.indexOf(key) + 1}`;
 
             try {
-              return await client.chat.completions.create(params, options);
+              return await createWithRetry(client, params, options);
             } catch (error) {
-              if (!(error instanceof OpenAI.RateLimitError)) throw error;
-              cooldownUntil.set(key, Date.now() + cooldownFor(error));
-              console.warn(`[groq] key #${keys.indexOf(key) + 1} is rate limited, trying the next key`);
+              if (error instanceof OpenAI.RateLimitError) {
+                cooldownUntil.set(key, Date.now() + cooldownFor(error));
+                console.warn(`[groq] ${label} is rate limited, trying the next key`);
+              } else if (error instanceof OpenAI.AuthenticationError || error instanceof OpenAI.PermissionDeniedError) {
+                cooldownUntil.set(key, Date.now() + AUTH_COOLDOWN_MS);
+                console.error(`[groq] ${label} was rejected (invalid or revoked key), trying the next key`);
+              } else {
+                throw error;
+              }
               lastError = error;
             }
           }

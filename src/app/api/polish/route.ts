@@ -64,11 +64,34 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    if (typeof content !== "string" || !content.trim()) {
+    if (typeof content !== "string") {
       return NextResponse.json(
         { error: "Content is required" },
         { status: 400 }
       );
+    }
+
+    if (!content.trim()) {
+      // A summary can be generated from role / experience / projects alone.
+      const canGenerateSummary =
+        section === "summary" &&
+        Boolean(
+          textValue(context.role).trim() ||
+            (Array.isArray(context.experience) && context.experience.length > 0) ||
+            (Array.isArray(context.projects) && context.projects.length > 0)
+        );
+
+      if (!canGenerateSummary) {
+        return NextResponse.json(
+          {
+            error:
+              section === "summary"
+                ? "Add your role, an experience or a project first, or write a line to guide the summary."
+                : "Content is required",
+          },
+          { status: 400 }
+        );
+      }
     }
 
     if (content.length > MAX_CONTENT_LENGTH) {
@@ -125,7 +148,7 @@ Expand this into 2-3 polished, professional resume sentences (no bullet symbols)
 Target role: ${role || "not specified"}
 
 Current draft:
-${content}
+${content.trim() || "None yet. Write it from the details below."}
 
 Experience:
 ${experience || "None provided"}

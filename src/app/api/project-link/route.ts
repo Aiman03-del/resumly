@@ -249,13 +249,24 @@ export async function POST(req: NextRequest) {
         : `Write a concise, professional 1-2 sentence resume project description for a project called "${name}". No link or extra details were given — write a plausible, generic-but-relevant description based only on the project name. Return ONLY the description, no preamble.`;
 
     const groq = createGroqClient();
+    const model = process.env.GROQ_MODEL || "openai/gpt-oss-20b";
     const response = await groq.chat.completions.create({
-      model: process.env.GROQ_MODEL || "openai/gpt-oss-20b",
+      model,
       messages: [{ role: "user", content: prompt }],
-      max_tokens: 200,
+      // Reasoning models spend part of this budget on thinking, so keep it generous.
+      max_tokens: 1000,
+      ...(model.includes("gpt-oss") ? { reasoning_effort: "low" as const } : {}),
     });
 
-    return NextResponse.json({ description: response.choices[0]?.message?.content ?? "" });
+    const description = response.choices[0]?.message?.content?.trim() ?? "";
+    if (!description) {
+      return NextResponse.json(
+        { error: "AI could not generate a description. Please try again." },
+        { status: 502 },
+      );
+    }
+
+    return NextResponse.json({ description });
   } catch (error: unknown) {
     return apiErrorResponse(error, "api/project-link", "Failed to generate description.");
   }

@@ -25,24 +25,31 @@ export function SettingsView({ email, settings }: { email: string; settings: Use
   const [tab, setTab] = useState<TabId>("profile");
 
   return (
-    <div className="max-w-5xl mx-auto px-6 py-10">
+    <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8 sm:py-10">
       <h1 className="text-2xl font-semibold mb-1">Settings</h1>
-      <p className="text-sm text-foreground/60 mb-8">Manage your profile, security, resume defaults and privacy.</p>
+      <p className="text-sm text-foreground/60 mb-6 sm:mb-8">Manage your profile, security, resume defaults and privacy.</p>
 
-      <div className="grid gap-8 md:grid-cols-[220px_1fr]">
-        <nav aria-label="Settings sections" className="flex md:flex-col gap-1 overflow-x-auto md:overflow-visible -mx-6 px-6 md:mx-0 md:px-0 pb-1 md:sticky md:top-24 md:self-start">
+      <div className="grid gap-6 md:gap-8 md:grid-cols-[220px_1fr]">
+        <nav
+          aria-label="Settings sections"
+          className="grid grid-cols-2 sm:grid-cols-3 gap-2 md:flex md:flex-col md:gap-1 md:sticky md:top-24 md:self-start"
+        >
           {TABS.map(({ id, label, icon: Icon }) => (
             <button
               key={id}
               type="button"
               onClick={() => setTab(id)}
               aria-current={tab === id ? "page" : undefined}
-              className={`flex items-center gap-2.5 whitespace-nowrap px-3.5 py-2.5 rounded-lg text-sm text-left transition-colors ${
-                tab === id ? "bg-primary/10 text-primary font-medium" : "text-foreground/70 hover:bg-muted"
+              className={`flex items-center gap-2.5 min-w-0 px-3 md:px-3.5 py-2.5 rounded-lg border text-sm text-left leading-tight transition-colors ${
+                tab === id
+                  ? "bg-primary/10 text-primary font-medium border-primary/30 md:border-transparent"
+                  : "text-foreground/70 border-border hover:bg-muted md:border-transparent"
               } ${id === "data" ? "md:mt-3" : ""}`}
             >
-              <Icon size={16} />
-              {label}
+              <span className="shrink-0">
+                <Icon size={16} />
+              </span>
+              <span className="min-w-0">{label}</span>
             </button>
           ))}
         </nav>
