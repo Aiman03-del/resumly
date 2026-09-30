@@ -14,11 +14,12 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { printResumeAsPdf } from "@/lib/print-pdf";
+import { canvasToA4Pdf } from "@/lib/image-pdf";
 import { toast } from "sonner";
 
-type Format = "pdf" | "png" | "jpg";
+type Format = "pdf" | "pdf-text" | "png" | "jpg";
 
-// Same render scale for PNG, JPG and PDF so all three come out the same size.
+// Same render scale for PNG and JPG; PDF output is sliced into A4 pages.
 const EXPORT_SCALE = 2;
 
 export function DownloadMenu({
@@ -37,7 +38,7 @@ export function DownloadMenu({
     setLoading(format);
 
     try {
-      if (format === "pdf") {
+      if (format === "pdf-text") {
         try {
           await printResumeAsPdf(targetRef.current, { fileName, fullBleed });
           return;
@@ -70,25 +71,8 @@ export function DownloadMenu({
         },
       });
 
-      if (format === "pdf") {
-        const { jsPDF } = await import("jspdf");
-        const imgData = canvas.toDataURL("image/png");
-
-        // PDF page = exactly the same size as the PNG/JPG (no margins,
-        // no A4 slicing), so it looks identical on mobile and desktop.
-        const pageWidth = canvas.width / EXPORT_SCALE;
-        const pageHeight = canvas.height / EXPORT_SCALE;
-
-        const pdf = new jsPDF({
-          unit: "px",
-          format: [pageWidth, pageHeight],
-          orientation: pageWidth > pageHeight ? "landscape" : "portrait",
-          compress: true,
-          hotfixes: ["px_scaling"],
-        });
-
-        pdf.addImage(imgData, "PNG", 0, 0, pageWidth, pageHeight, undefined, "FAST");
-
+      if (format === "pdf" || format === "pdf-text") {
+        const pdf = await canvasToA4Pdf(canvas, { fullBleed });
         pdf.save(`${fileName}.pdf`);
       } else {
         const mime = format === "png" ? "image/png" : "image/jpeg";
@@ -131,6 +115,9 @@ export function DownloadMenu({
       <DropdownMenuContent align="end">
         <DropdownMenuItem onClick={() => handleExport("pdf")}>
           <FileText size={14} className="mr-2" /> PDF
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => handleExport("pdf-text")}>
+          <FileText size={14} className="mr-2" /> PDF (ATS text)
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => handleExport("png")}>
           <FileImage size={14} className="mr-2" /> PNG

@@ -30,7 +30,7 @@ export function SettingsView({ email, settings }: { email: string; settings: Use
       <p className="text-sm text-foreground/60 mb-8">Manage your profile, security, resume defaults and privacy.</p>
 
       <div className="grid gap-8 md:grid-cols-[220px_1fr]">
-        <nav aria-label="Settings sections" className="flex md:flex-col gap-1 overflow-x-auto md:overflow-visible -mx-6 px-6 md:mx-0 md:px-0 pb-1">
+        <nav aria-label="Settings sections" className="flex md:flex-col gap-1 overflow-x-auto md:overflow-visible -mx-6 px-6 md:mx-0 md:px-0 pb-1 md:sticky md:top-24 md:self-start">
           {TABS.map(({ id, label, icon: Icon }) => (
             <button
               key={id}
