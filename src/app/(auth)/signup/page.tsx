@@ -6,6 +6,9 @@ import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { AlertCircle, Loader2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { PasswordInput } from "@/components/password-input";
+import { PasswordStrengthMeter } from "@/components/password-strength-meter";
+import { getPasswordStrength, MIN_PASSWORD_LENGTH } from "@/lib/password-strength";
 import { toast } from "sonner";
 
 export default function SignupPage() {
@@ -15,9 +18,14 @@ export default function SignupPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [checkEmail, setCheckEmail] = useState(false);
+  const passwordIsStrong = getPasswordStrength(password).isStrong;
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (!passwordIsStrong) {
+      setError("Please choose a stronger password that meets all the requirements below.");
+      return;
+    }
     setLoading(true);
     setError("");
 
@@ -32,7 +40,7 @@ export default function SignupPage() {
       if (signupError.message.includes("User already registered")) {
         setError("An account with this email already exists. Try logging in instead.");
       } else if (signupError.message.includes("Password should be")) {
-        setError("Password must be at least 6 characters.");
+        setError(`Password must be at least ${MIN_PASSWORD_LENGTH} characters.`);
       } else {
         setError(signupError.message);
       }
@@ -88,17 +96,15 @@ export default function SignupPage() {
           </div>
           <div>
             <label htmlFor="password" className="text-sm font-medium">Password</label>
-            <input
+            <PasswordInput
               id="password"
-              type="password"
               value={password}
               onChange={(event) => setPassword(event.target.value)}
               required
-              minLength={6}
-              className="w-full mt-1 px-3 py-2 rounded-lg border border-border bg-background"
-              placeholder="At least 6 characters"
+              autoComplete="new-password"
+              placeholder="Create a strong password"
             />
-            <p className="text-xs text-foreground/40 mt-1">Must be at least 6 characters</p>
+            <PasswordStrengthMeter password={password} />
           </div>
 
           {error && (
@@ -110,7 +116,7 @@ export default function SignupPage() {
 
           <button
             type="submit"
-            disabled={loading}
+            disabled={loading || !passwordIsStrong}
             className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg bg-primary text-primary-fg font-medium disabled:opacity-60"
           >
             {loading && <Loader2 size={16} className="animate-spin" />}

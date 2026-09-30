@@ -8,6 +8,7 @@ import { AlertCircle, Loader2 } from "lucide-react";
 import { GENERIC_LOGIN_ERROR } from "@/lib/auth-errors";
 import { safeRedirect } from "@/lib/safe-redirect";
 import { SplashLoader } from "@/components/splash-screen";
+import { PasswordInput } from "@/components/password-input";
 import { toast } from "sonner";
 
 function LoginForm() {
@@ -81,13 +82,12 @@ function LoginForm() {
           </div>
           <div>
             <label htmlFor="password" className="text-sm font-medium">Password</label>
-            <input
+            <PasswordInput
               id="password"
-              type="password"
               value={password}
               onChange={(event) => setPassword(event.target.value)}
               required
-              className="w-full mt-1 px-3 py-2 rounded-lg border border-border bg-background"
+              autoComplete="current-password"
               placeholder="Your password"
             />
           </div>
