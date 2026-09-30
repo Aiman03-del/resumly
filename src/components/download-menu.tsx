@@ -14,7 +14,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { printResumeAsPdf } from "@/lib/print-pdf";
-import { canvasToA4Pdf } from "@/lib/image-pdf";
+import { canvasToA4Pdf, collectPdfLinks } from "@/lib/image-pdf";
 import { toast } from "sonner";
 
 type Format = "pdf" | "pdf-text" | "png" | "jpg";
@@ -72,7 +72,10 @@ export function DownloadMenu({
       });
 
       if (format === "pdf" || format === "pdf-text") {
-        const pdf = await canvasToA4Pdf(canvas, { fullBleed });
+        const pdf = await canvasToA4Pdf(canvas, {
+          fullBleed,
+          links: collectPdfLinks(element, canvas),
+        });
         pdf.save(`${fileName}.pdf`);
       } else {
         const mime = format === "png" ? "image/png" : "image/jpeg";

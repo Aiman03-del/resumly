@@ -76,8 +76,37 @@ export function planSlices(canvas: HTMLCanvasElement, fullBleed: boolean): Slice
   return slices;
 }
 
+export interface PdfLink {
+  url: string;
+  /** Position and size in canvas pixels. */
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+}
+
+/** Reads every <a href> inside the resume and maps its box onto the rendered canvas. */
+export function collectPdfLinks(element: HTMLElement, canvas: HTMLCanvasElement): PdfLink[] {
+  const origin = element.getBoundingClientRect();
+  const ratio = canvas.width / element.scrollWidth;
+
+  return Array.from(element.querySelectorAll<HTMLAnchorElement>("a[href]")).flatMap((anchor) =>
+    // getClientRects returns one box per wrapped line
+    Array.from(anchor.getClientRects()).map((rect) => ({
+      url: anchor.href,
+      x: (rect.left - origin.left) * ratio,
+      y: (rect.top - origin.top) * ratio,
+      w: rect.width * ratio,
+      h: rect.height * ratio,
+    }))
+  );
+}
+
 /** Turns the rendered resume canvas into a real multi-page A4 PDF (image based). */
-export async function canvasToA4Pdf(canvas: HTMLCanvasElement, { fullBleed = false } = {}): Promise<jsPDF> {
+export async function canvasToA4Pdf(
+  canvas: HTMLCanvasElement,
+  { fullBleed = false, links = [] as PdfLink[] } = {}
+): Promise<jsPDF> {
   const { jsPDF } = await import("jspdf");
   const pdf = new jsPDF({ unit: "mm", format: "a4", orientation: "portrait", compress: true });
   const pxPerMm = canvas.width / PAGE_W_MM;
@@ -96,6 +125,20 @@ export async function canvasToA4Pdf(canvas: HTMLCanvasElement, { fullBleed = fal
 
     if (index > 0) pdf.addPage();
     pdf.addImage(part.toDataURL("image/png"), "PNG", 0, slice.topMm, PAGE_W_MM, height / pxPerMm, undefined, "FAST");
+
+    // Clickable link areas for this page
+    for (const link of links) {
+      const top = Math.max(link.y, slice.start);
+      const bottom = Math.min(link.y + link.h, slice.end);
+      if (bottom <= top) continue;
+      pdf.link(
+        link.x / pxPerMm,
+        slice.topMm + (top - slice.start) / pxPerMm,
+        link.w / pxPerMm,
+        (bottom - top) / pxPerMm,
+        { url: link.url }
+      );
+    }
   });
 
   return pdf;

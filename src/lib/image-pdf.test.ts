@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { planSlices } from "./image-pdf";
+import { collectPdfLinks, planSlices } from "./image-pdf";
 
 function canvasWithRows(height: number, blankRows = new Set<number>()): HTMLCanvasElement {
   const context = {
@@ -35,6 +35,27 @@ describe("planSlices", () => {
     expect(planSlices(canvasWithRows(500, new Set([280])), false)).toEqual([
       { start: 0, end: 280, topMm: 0 },
       { start: 280, end: 500, topMm: 12 },
+    ]);
+  });
+});
+
+describe("collectPdfLinks", () => {
+  it("maps each wrapped anchor rect from element coordinates to canvas pixels", () => {
+    const element = document.createElement("div");
+    const anchor = document.createElement("a");
+    anchor.href = "https://example.com/project";
+    element.append(anchor);
+
+    Object.defineProperty(element, "scrollWidth", { value: 100 });
+    element.getBoundingClientRect = () => ({ left: 100, top: 200 }) as DOMRect;
+    anchor.getClientRects = () => [
+      { left: 110, top: 210, width: 20, height: 8 },
+      { left: 112, top: 218, width: 10, height: 8 },
+    ] as unknown as DOMRectList;
+
+    expect(collectPdfLinks(element, { width: 200 } as HTMLCanvasElement)).toEqual([
+      { url: "https://example.com/project", x: 20, y: 20, w: 40, h: 16 },
+      { url: "https://example.com/project", x: 24, y: 36, w: 20, h: 16 },
     ]);
   });
 });

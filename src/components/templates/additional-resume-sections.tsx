@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import type { ResumeData } from "@/types/resume";
 import type { AdditionalSectionKey } from "@/lib/section-order";
+import { toHref } from "@/lib/link-utils";
 
 interface AdditionalResumeSectionsProps {
   data: ResumeData;
@@ -51,7 +52,7 @@ export function AdditionalResumeSections({
                 <p className="text-xs opacity-60 mt-1">Credential ID: {item.credentialId}</p>
               )}
               {item.credentialUrl && (
-                <a href={item.credentialUrl} target="_blank" rel="noopener noreferrer" className="text-xs underline opacity-70">
+                <a href={toHref(item.credentialUrl)} target="_blank" rel="noopener noreferrer" className="text-xs underline opacity-70">
                   View Credential
                 </a>
               )}
@@ -134,7 +135,7 @@ export function AdditionalResumeSections({
               </div>
               {item.description && <p className="text-sm opacity-75 mt-1 leading-relaxed">{item.description}</p>}
               {item.url && (
-                <a href={item.url} target="_blank" rel="noopener noreferrer" className="inline-block text-xs underline opacity-70 mt-1">
+                <a href={toHref(item.url)} target="_blank" rel="noopener noreferrer" className="inline-block text-xs underline opacity-70 mt-1">
                   View Publication
                 </a>
               )}
@@ -160,7 +161,7 @@ export function AdditionalResumeSections({
               </div>
               {item.description && <p className="text-sm opacity-75 mt-1 leading-relaxed">{item.description}</p>}
               {item.credentialUrl && (
-                <a href={item.credentialUrl} target="_blank" rel="noopener noreferrer" className="inline-block text-xs underline opacity-70 mt-1">
+                <a href={toHref(item.credentialUrl)} target="_blank" rel="noopener noreferrer" className="inline-block text-xs underline opacity-70 mt-1">
                   View Certificate
                 </a>
               )}

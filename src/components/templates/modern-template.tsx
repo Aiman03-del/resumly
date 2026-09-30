@@ -1,4 +1,6 @@
 import type { ResumeData } from "@/types/resume";
+import { ResumeLink } from "@/components/resume-link";
+import { displayUrl } from "@/lib/link-utils";
 import { joinContact } from "@/lib/contact-line";
 import { normalizeOrder, pickOrder, type SectionKey } from "@/lib/section-order";
 import { renderSections } from "@/lib/render-sections";
@@ -79,7 +81,14 @@ export function ModernTemplate({ data }: { data: ResumeData }) {
                 <p className="font-medium min-w-0">{project.name}</p>
                 {links.length > 0 && (
                   <span className="text-primary text-xs shrink-0 whitespace-nowrap">
-                    {links.map((link) => link.replace(/^https?:\/\//, "")).join(" · ")}
+                    {links.map((link, i) => (
+                      <span key={i}>
+                        {i > 0 && " · "}
+                        <ResumeLink url={link} className="underline underline-offset-2 hover:opacity-80">
+                          {displayUrl(link)}
+                        </ResumeLink>
+                      </span>
+                    ))}
                   </span>
                 )}
               </div>
